@@ -57,6 +57,16 @@
             );
         }, 1000);
 
+        let wakeLock = null;
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = navigator.wakeLock.request('screen');
+                console.log('Wake Lock is active!');
+            } catch (err) {
+                console.log(`${err.name}, ${err.message}`);
+            }
+        }
+
         function digitHandle(inp) {
             if (typeof(inp) == "number") {
                 inp = String(inp);
@@ -88,7 +98,7 @@
             }
 
             let root = document.documentElement;
-            if (parseInt(hour) < 5 | parseInt(hour) > 17) {
+            if (parseInt(hour) < 5 | parseInt(hour) > 12) {
                 root.style.setProperty('--background-color', 'rgb(53, 53, 53)');
                 root.style.setProperty('--text-color', '#f3f3f3')
             } else {
