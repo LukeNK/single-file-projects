@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Colorful keys</title>
+    <!--For my sister who love seeing things change color on her action-->
+</head>
+
+<body style="width: 100vw; height: 100vh; margin: 0; top: 0; left: 0;">
+    <script>
+        document.onkeypress = function(e) {
+            let x = (Math.floor(Math.random() * 256)).toString(16);
+            let y = (Math.floor(Math.random() * 256)).toString(16);
+            let z = (Math.floor(Math.random() * 256)).toString(16);
+            document.body.style.backgroundColor = `#${x + y + z}`;
+        };
+    </script>
+</body>
+
+</html>
