@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="mainCanvas" width="800" height="800">
+</body>
+
+<script>
+    "use strict";
+    let ctx = document.getElementById('mainCanvas').getContext('2d');
+    let graphicArr = [], //20*20; -1,0,1,2: apple, empty, snake, head
+        hdg = [1, 0], //vector
+        sLength = 2; //body, exclude head
+
+    //init
+    for (let l1 = 0; l1 <= 20; l1++) {
+        graphicArr.push([])
+        for (let l2 = 0; l2 <= 20; l2++) {
+            graphicArr[l1].push([0])
+        }
+    }
+    graphicArr[4][0] = 1;
+    graphicArr[5][0] = 1;
+    graphicArr[6][0] = 2;
+
+    document.addEventListener('keydown', function(e) {
+        let n;
+        if (e.key == 'w' || e.key == 'ArrowUp') n = [0, -1];
+        if (e.key == 'd' || e.key == 'ArrowRight') n = [1, 0];
+        if (e.key == 's' || e.key == 'ArrowDown') n = [0, 1];
+        if (e.key == 'a' || e.key == 'ArrowLeft') n = [-1, 0];
+        if (hdg[0] * n[0] != -1 && hdg[1] * n[1] != -1) hdg = n;
+    })
+
+    function drawCanvas() {
+        ctx.clearRect(0, 0, 800, 800)
+        for (let l1 = 0; l1 <= 20; l1++) {
+            for (let l2 = 0; l2 <= 20; l2++) {
+                if (graphicArr[l1][l2] == -1) {
+                    ctx.fillStyle = "rgb(255,0,0)";
+                    ctx.fillRect(l1 * 40, l2 * 40, 40, 40)
+                } else if (graphicArr[l1][l2] == 1) {
+                    ctx.fillStyle = "rgb(0,255,0)";
+                    ctx.fillRect(l1 * 40, l2 * 40, 40, 40)
+                } else if (graphicArr[l1][l2] == 2) {
+                    ctx.fillStyle = "rgb(0,255,255)";
+                    ctx.fillRect(l1 * 40, l2 * 40, 40, 40)
+                }
+            }
+        }
+    }
+
+    function makeApple() {
+        let x = Math.floor(Math.random() * 10) * 2,
+            y = Math.floor(Math.random() * 10) * 2;
+        if (graphicArr[x][y] == 0) { //empty spot
+            graphicArr[x][y] = -1
+        } else makeApple(); //if not empty, recursive call
+    }
+    makeApple();
+    let doneInit = true;
+
+    var moveSnake = setInterval(() => {
+        if (!doneInit) return
+        //find head
+
+        let cur = [];
+        let l1, //counter
+            apple = 0; //if got apple
+        for (l1 = 0; l1 <= 20; l1++)
+            for (let l2 = 0; l2 <= 20; l2++)
+                if (graphicArr[l1][l2] == 2) {
+                    cur = [l1, l2];
+                }
+
+        //check conlision
+        if (graphicArr[cur[0] + hdg[0]] == undefined ||
+            graphicArr[cur[0] + hdg[0]][cur[1] + hdg[1]] == undefined ||
+            graphicArr[cur[0] + hdg[0]][cur[1] + hdg[1]] == 1) {
+            //body hit
+            clearInterval(moveSnake);
+            return
+        } else if (graphicArr[cur[0] + hdg[0]][cur[1] + hdg[1]] == -1)
+            apple = 1;
+
+        let hcur = [cur[0], cur[1]]; //remember headCur
+        //find tail
+        let lcur = [cur[0], cur[1]];
+        for (l1 = 1; l1 <= sLength; l1++) {
+            //scan every direction for body, lastly get tail
+            if (graphicArr[cur[0] + 1][cur[1]] == 1) {
+                if (!(lcur[0] == cur[0] + 1 && lcur[1] == cur[1]))
+                    cur[0] += 1;
+            }
+            if (graphicArr[cur[0]][cur[1] + 1] == 1) {
+                if (!(lcur[0] == cur[0] && lcur[1] == cur[1] + 1))
+                    cur[1] += 1;
+            }
+            if (graphicArr[cur[0] - 1][cur[1]] == 1) {
+                if (!(lcur[0] == cur[0] - 1 && lcur[1] == cur[1]))
+                    cur[0] -= 1;
+            }
+            if (graphicArr[cur[0]][cur[1] - 1] == 1) {
+                if (!(lcur[0] == cur[0] && lcur[1] == cur[1] - 1))
+                    cur[1] -= 1;
+            }
+            lcur = [cur[0], cur[1]]; //update lastcur
+        }
+        graphicArr[cur[0]][cur[1]] = apple; //if got apple, the snake expand
+        if (apple) {
+            sLength += 1;
+            makeApple()
+        };
+
+        graphicArr[hcur[0]][hcur[1]] = 1; //remove head;
+        graphicArr[hcur[0] + hdg[0]][hcur[1] + hdg[1]] = 2; //new head
+        drawCanvas()
+    }, 500);
+</script>
+
+</html>

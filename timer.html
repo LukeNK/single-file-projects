@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Focus</title>
+    <!--I love programming because unlike human, computer always do what the developer told them to do
+    I hate programming because unlike human, computer always do what the developer told them to do-->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --background-color: #303633ff;
+            --primary-1: #42cafdff;
+            --text-color: #fcfafaff;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Comfortaa', cursive;
+        }
+        
+        button {
+            border-radius: 0px;
+            border-width: 0px;
+            outline: none;
+        }
+        
+        .progressBarOutline {
+            border: 1px solid grey;
+        }
+        
+        .progressBar {
+            background-color: var(--primary-1);
+        }
+        
+        #divClock {
+            height: 40vh;
+        }
+        
+        #divClock p {
+            text-align: center;
+        }
+        
+        #dateClock {
+            margin-top: 0px;
+            margin-bottom: 0px;
+            font-size: 2.5em;
+        }
+        
+        #mainClock {
+            margin-top: 0px;
+            font-size: 10em;
+            margin: 0px;
+        }
+        
+        #greeting {
+            margin-top: 0px;
+        }
+        
+        #startMenu {
+            display: block;
+            z-index: 10;
+            position: fixed;
+            top: 40vh;
+            right: 0px;
+            height: 60vh;
+            width: 100%;
+            margin: 0%;
+            background-color: var(--background-color);
+        }
+    </style>
+
+    <!--Get set cookies-->
+    <script>
+        // Script to set and get cookies (from w3schools.com)
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+    </script>
+
+    <!--Global var-->
+    <script>
+        let studyTime = 0;
+        let targetStudyTime;
+    </script>
+</head>
+
+<body>
+    <div id="divClock">
+        <p id="dateClock">Date</p>
+        <p id="mainClock">Clock</p>
+        <p id="greeting"></p>
+        <script>
+            function clock() {
+                var today = new Date();
+                var h = today.getHours();
+                var m = today.getMinutes();
+                var s = today.getSeconds();
+
+                //Greet
+                let greet = '';
+                if (h < 6) greet = 'Good early morning'
+                else if (h < 12) greet = 'Good morning'
+                else if (h < 18) greet = 'Good afternoon'
+                else if (h < 22) greet = 'Good evening'
+                else greet = 'Goodnight';
+
+                h = checkTime(h);
+                m = checkTime(m);
+                s = checkTime(s);
+
+                document.getElementById('dateClock').innerHTML =
+                    today.getFullYear() + ', ' +
+                    month2text(today.getMonth()) + ' ' +
+                    date2text(today.getDate());
+                document.getElementById('mainClock').innerHTML =
+                    h + ":" + m + ":" + s;
+                document.getElementById('greeting').innerHTML = greet;
+
+                if (studyTime != 0) {
+                    studyTime--;
+                    document.getElementById('learnProgressBar').style.width = ((targetStudyTime - studyTime) / targetStudyTime * 100) + '%';
+                };
+
+                let t = setTimeout(clock, 1000)
+            }
+
+            function checkTime(i) {
+                (i < 10) ? i = "0" + i: {};
+                return i;
+            }
+
+            function month2text(month) {
+                switch (month) {
+                    case 0:
+                        return 'January'
+                    case 1:
+                        return 'February'
+                    case 2:
+                        return 'March'
+                    case 3:
+                        return 'April'
+                    case 4:
+                        return 'May'
+                    case 5:
+                        return 'June'
+                    case 6:
+                        return 'July'
+                    case 7:
+                        return 'August'
+                    case 8:
+                        return 'September'
+                    case 9:
+                        return 'October'
+                    case 10:
+                        return 'November'
+                    case 11:
+                        return 'December'
+                }
+            }
+
+            function date2text(date) {
+                let res = date + 'th';
+                if (date == 1 || date == 21) res = date + 'st'
+                else if (date == 2 || date == 22) res = date + 'nd'
+                else if (date == 3 || date == 23) res = date + 'rd'
+                return res
+            }
+        </script>
+    </div>
+
+    <div id="tracker">
+        <div class="progressBarOutline">
+            <div class="progressBar" id="learnProgressBar" style="width: 50%; height: 24px;"></div>
+        </div>
+    </div>
+
+    <div id="startMenu">
+        <input type="number" name="Study Time" id="studyTimeInput">
+        <button onclick="setStudyTime()"></button>
+        <script>
+            function setStudyTime() {
+                targetStudyTime = parseInt(document.getElementById('studyTimeInput').value);
+                studyTime = targetStudyTime;
+                document.getElementById('startMenu').style.display = 'none';
+            }
+        </script>
+    </div>
+
+    <script>
+        function onLoadInit() {
+            clock();
+        }
+        onLoadInit();
+    </script>
+</body>
+<html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<!--TODO
+    base
+        arrow
+        text 
+            calculation?
+            update display (#textOutput)
+            calculate wpm 
+                wpl (word per line) constant
+                calculate total read time
+                calculate scoll speed
+                loop update 
+        progress bar
+            cur/total*100 + "%"
+    menu (z-index)
+        text input
+        cookies!!
+        color adjust
+        speed
+        ads?
+-->
+
+<head>
+    <title>Teleprompter</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            top: 0;
+            left: 0;
+            background-color: black;
+        }
+
+        p,
+        h1 {
+            color: white;
+            margin: 0;
+        }
+
+        #arrow {
+            float: left;
+            width: 10vw;
+            margin-left: 5vw;
+            height: 100vh;
+        }
+
+        #textOutput {
+            position: absolute;
+            top: 100px;
+        }
+
+        #progress {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            height: 0;
+            width: 10px;
+            background-color: rgb(82, 82, 82);
+        }
+
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100vw;
+            background-color: rgb(56, 56, 56);
+            z-index: 2;
+            display: block;
+        }
+
+        #textInput {
+            color: cornsilk;
+            background-color: dimgray;
+            height: 90%;
+        }
+    </style>
+
+    <script>
+        //init script
+        let config = {
+            color: {
+                text: "#ffffff",
+                bg: "#383838"
+            },
+            text: "hello world",
+            tree: [],
+            intervalTime: 10, //will be calculate on the fly
+            intervalCur: 0,
+            wpl: 4 //(const)word per line
+        }
+        let displayUpdate; //interval
+
+        function pageInit() {
+            document.getElementById('mainWin').style.backgroundColor = config.color.bg;
+            document.getElementById('textInput').value = config.text;
+        }
+
+        function startTele() {
+            config.text = ' ' + document.getElementById('textInput').value;
+            document.getElementById('menu').style.display = 'none';
+            config.text.replace(/\n/g, ' ');
+            config.tree = config.text.split(' ');
+            config.text = "";
+            for (let l1 = 0; l1 < config.tree.length; l1++) {
+                config.text += config.tree[l1] + ' ';
+                if (l1 % config.wpl == 0) config.text += '<br>';
+            }
+            document.getElementById('textOutput').innerHTML = config.text;
+
+            displayUpdate = setInterval(() => {
+                document.getElementById('textOutput').style.top = "0px";
+                if (config.intervalCur <= config.intervalTime) {
+                    document.getElementById('progress').style.height =
+                        config.intervalCur / config.intervalTime * 100 + '%';
+                    config.intervalCur += 1;
+                }
+            }, 1000)
+        }
+    </script>
+</head>
+
+<body id="body">
+    <div id="mainWin">
+        <div id="arrow">
+            <h1 style="position: absolute;top: calc(40vh);">&gt;</h1>
+        </div>
+        <h1 id="textOutput"></h1>
+        <div id="progress"></div>
+    </div>
+    <div id="menu">
+        <textarea id="textInput" cols="80"></textarea>
+        <button onclick="startTele()">Start</button>
+    </div>
+    <script>
+        pageInit(); //init page when complete
+    </script>
+</body>
+
+</html>
