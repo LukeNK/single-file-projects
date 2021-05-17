@@ -5,30 +5,41 @@
     <style>
         body {
             background-color: black;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
         }
     </style>
 </head>
 
 <body>
-    <canvas id="mainCanvas" width="800" height="800">
+    <h1 id="score">Score: </h1>
+    <p id="timmer">Time: 0s</p>
+    <canvas id="mainCanvas" width="800" height="800" style="border: 1px solid white;"></canvas>
+
+    <input id="timeSetting" type="number" value="500" aria-valuemin="1">
+    <button onclick="init()">Start</button>
+    <input id="cheat" type="checkbox">
 </body>
 
 <script>
     "use strict";
     let ctx = document.getElementById('mainCanvas').getContext('2d');
     let apple = [], //apple cordinate
-        hdg = [0, 1], //vector
-        sLength = 2, //body, exclude head
-        sBody = []; //array of body
+        hdg, //vector
+        sLength, //body, exclude head
+        sBody = [], //array of body
+        frame = 0; //frame count
+    var moveSnake; //interval
 
-    //init
-    sBody.push([1, 6]);
-    sBody.push([1, 5]);
-    sBody.push([1, 4]);
-    let turn = false;
-
-    document.addEventListener('keydown', function(e) {
+    function checkKey(e) {
+        //gameplay keys
+        if (e.key == 'r') {
+            dead();
+            init();
+            return
+        }
         let n = 0;
+        //control keys
         if (e.key == 'w' || e.key == 'ArrowUp') n = [0, -1];
         if (e.key == 'd' || e.key == 'ArrowRight') n = [1, 0];
         if (e.key == 's' || e.key == 'ArrowDown') n = [0, 1];
@@ -38,8 +49,20 @@
             hdg[0] = n[0];
             hdg[1] = n[1];
         }
-        turn = true;
-    })
+    }
+    document.addEventListener('keydown', checkKey)
+
+    function init() {
+        frame = 0;
+        sBody = [];
+        sBody.push([1, 6]);
+        sBody.push([1, 5]);
+        sBody.push([1, 4]);
+        hdg = [0, 1]; //vector
+        sLength = 2; //body, exclude head
+        makeApple();
+        moveSnake = setInterval(snakeUpdate, document.getElementById('timeSetting').value)
+    }
 
     function drawCanvas() {
         ctx.clearRect(0, 0, 800, 800)
@@ -53,6 +76,65 @@
             ctx.fillStyle = "rgb(0,255,0)";
             ctx.fillRect(sBody[l1][0] * 40, sBody[l1][1] * 40, 40, 40)
         }
+        if (document.getElementById('cheat').checked) { //if cheat on
+            let lHead = [sBody[0][0], sBody[0][1]];
+            ctx.strokeStyle = "#00FF00";
+            ctx.beginPath();
+            if (lHead[0] != apple[0]) ctx.rect(apple[0] * 40, 0, 40, 800);
+            if (lHead[1] != apple[1]) ctx.rect(0, apple[1] * 40, 800, 40);
+            ctx.stroke();
+            let l1;
+            ctx.strokeStyle = "#FF00FF"
+            for (l1 = 0; l1 < 20; l1++) {
+                ctx.beginPath();
+                ctx.rect(lHead[0] * 40, lHead[1] * 40, 40, 40);
+                lHead[0] += hdg[0];
+                lHead[1] += hdg[1];
+                ctx.stroke();
+            }
+        }
+
+        //frame counter
+        frame += 1;
+        document.getElementById('timmer').textContent = `Time: ${frame*parseInt(document.getElementById('timeSetting').value)/1000}s`;
+    }
+
+    function snakeUpdate() {
+        if (!doneInit) return;
+
+
+        let hcur = [sBody[0][0], sBody[0][1]]; //head
+        let l1; //counter
+
+        //update head position
+        let tBody = [
+            [hcur[0] + hdg[0], hcur[1] + hdg[1]]
+        ];
+        for (l1 = 1; l1 < sBody.length; l1++) //loop through body, a[n-1]=a[n1]
+            tBody.push([sBody[l1 - 1][0], sBody[l1 - 1][1]]);
+
+        //colision
+        let nHead = [hcur[0] + hdg[0], hcur[1] + hdg[1]];
+        if (nHead[0] == apple[0] && nHead[1] == apple[1]) { //if ate apple
+            tBody.push([sBody[sBody.length - 1][0], sBody[sBody.length - 1][1]]);
+            makeApple(); //new apple
+            document.getElementById('score').textContent += '|' //add score
+        }
+        for (l1 in tBody) { //clear interval
+            l1 = parseInt(l1) + 1;
+            if (l1 == tBody.length) break; //avoid colision with head
+            if (tBody[l1][0] == nHead[0] && tBody[l1][1] == nHead[1])
+                dead()
+        }
+        if (hcur[0] == -1 || hcur[0] == 20 || hcur[1] == -1 || hcur[1] == 20)
+            dead()
+
+
+        sBody = [];
+        for (l1 = 0; l1 < tBody.length; l1++)
+            sBody.push(tBody[l1])
+
+        drawCanvas()
     }
 
     function makeApple() {
@@ -68,42 +150,11 @@
         apple[0] = x;
         apple[1] = y;
     }
-    makeApple();
+
+    function dead() {
+        clearInterval(moveSnake);
+    }
     let doneInit = true;
-
-    var moveSnake = setInterval(() => {
-        if (!doneInit) return
-
-        let hcur = [sBody[0][0], sBody[0][1]]; //head
-        let l1; //counter
-
-        //update head position
-        let tBody = [
-            [hcur[0] + hdg[0], hcur[1] + hdg[1]]
-        ];
-        for (l1 = 1; l1 < sBody.length; l1++) //loop through body, a[n-1]=a[n1]
-            tBody.push([sBody[l1 - 1][0], sBody[l1 - 1][1]]);
-
-        //colision
-        let nHead = [hcur[0] + hdg[0], hcur[1] + hdg[1]];
-        console.log(nHead)
-        if (nHead[0] == apple[0] && nHead[1] == apple[1]) { //if ate apple
-            tBody.push([sBody[sBody.length - 1][0], sBody[sBody.length - 1][1]]);
-            makeApple(); //new apple
-        }
-        for (l1 in tBody) { //clear interval
-            l1 = parseInt(l1) + 1;
-            if (l1 == tBody.length) break; //avoid colision with head
-            if (tBody[l1][0] == nHead[0] && tBody[l1][1] == nHead[1])
-                clearInterval(moveSnake);
-        }
-
-        sBody = [];
-        for (l1 = 0; l1 < tBody.length; l1++)
-            sBody.push(tBody[l1])
-
-        drawCanvas()
-    }, 500);
 </script>
 
 </html>
