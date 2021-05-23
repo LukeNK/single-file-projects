@@ -19,9 +19,9 @@
         <label>Snake speed</label>
         <input id="timeSetting" type="number" value="500" aria-valuemin="0" aria-valuemax="999">
         <label>Map size</label>
-        <input id="gameSize" type="number" value="40" aria-valuemin="1">
-        <label>Pixel/block</label>
         <input id="mapSize" type="number" value="20" aria-valuemin="1">
+        <label>Pixel/block</label>
+        <input id="gameSize" type="number" value="40" aria-valuemin="1">
         <button onclick="dead();init()">Start</button>
     </div>
     <h1>How to play</h1>
@@ -73,8 +73,8 @@
         hdg = [0, 1]; //vector
         sLength = 2; //body, exclude head
 
-        mapSize = document.getElementById('mapSize').value;
-        gameSize = document.getElementById('gameSize').value;
+        mapSize = parseInt(document.getElementById('mapSize').value);
+        gameSize = parseInt(document.getElementById('gameSize').value);
         changeMapSize();
 
         document.getElementById('body').style.overflow = 'hidden';

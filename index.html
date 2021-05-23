@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        // Set things here (how many sec to wait)
+        let finalTime = 15 * 60;
+
+        // Updates messages
+        let updatesMessages = {
+            '899': 'Planning',
+            '599': '+',
+            '300': 'Preparing',
+            '240': 'On plan',
+            '120': '-',
+            '30': 'Ready',
+            '10': 'Count!'
+        };
+        //replacement for commands
+        let cmdReplace = {
+            '+': 'Checking', //start audio
+            '-': 'High and chill' //stop audio
+        }
+    </script>
+    <title>Waiting</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa&display=swap');
+         :root {
+            --background-color: #303633ff;
+            --primary-1: #20bf55ff;
+            --primary-2: #00ffffff;
+            --primary-3: #fe6d73ff;
+            --secondary-1: #f5cac3ff;
+            --secondary-2: #f4d6ccff;
+            --secondary-3: #d3fac7ff;
+            --text-color: #fcfafaff;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            background-image: url(https://cdn.discordapp.com/attachments/691662971474149386/839143251680165929/20210504_211356.jpg);
+            background-size: cover;
+            color: var(--text-color);
+            font-family: 'Comfortaa', cursive;
+            font-size: 24px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+        
+        #topBar {
+            top: 0px;
+            width: 100%;
+            height: 1.5em;
+            padding-top: 0.5em;
+            background-color: var(--background-color);
+            opacity: 75%;
+        }
+        
+        #clock {
+            margin-top: 0px;
+            margin-right: 10px;
+            text-align: right;
+        }
+        
+        #streamInfo {
+            margin-top: 0px;
+            margin-left: 70%;
+            width: 30%;
+            text-align: right;
+            background-color: var(--background-color);
+            opacity: 75%;
+        }
+        
+        #streamInfo p {
+            margin-top: 0px;
+            margin-left: 0px;
+            margin-right: 10px;
+        }
+        
+        #bottomBar {
+            bottom: 0px;
+            width: 100%;
+            height: 1em;
+            position: fixed;
+            /*border: 1px solid var(--text-color);*/
+        }
+        
+        #progressBar {
+            height: 100%;
+            background-color: var(--primary-2);
+            opacity: 50%;
+        }
+    </style>
+
+    <script>
+        let countDown = finalTime;
+
+        function clock() {
+            var today = new Date();
+            var h = today.getHours();
+            var m = today.getMinutes();
+            var s = today.getSeconds();
+
+            var zone = h - today.getUTCHours();
+            (zone >= 0) ? zone = '+' + zone: zone = '-' + zone;
+
+            h = checkTime(h);
+            m = checkTime(m);
+            s = checkTime(s);
+
+            document.getElementById('clock').innerHTML =
+                "Time: " + h + ":" + m + ":" + s + ' | UTC ' + zone;
+
+            countDown--;
+            if (countDown != 0) {
+                document.getElementById('progressBar').style.width = ((finalTime - countDown) / finalTime * 100) + '%';
+            }
+
+            let updates = document.getElementById('updates').innerHTML;
+            if (updatesMessages[String(countDown)] != undefined) {
+                updates = updatesMessages[String(countDown)];
+            }
+            if (updates == '+') {
+                document.getElementById("musicPlayer").play();
+            } else if (updates == '-') {
+                document.getElementById("musicPlayer").pause();
+            }
+            if (cmdReplace[updates] != undefined) updates = cmdReplace[updates];
+
+            document.getElementById('updates').innerHTML = updates;
+            if (countDown > 0) {
+                document.getElementById('countDown').innerHTML = countDown;
+            } else {
+                document.getElementById('topBar').style.backgroundColor = 'var(--primary-3)';
+                //document.getElementById('streamInfo').style.backgroundColor = 'var(--primary-3)';
+                document.getElementById('countDown').innerHTML = 'Starting stream';
+            }
+
+            let t = setTimeout(clock, 1000)
+        }
+
+        function checkTime(i) {
+            if (i < 10) {
+                i = "0" + i
+            };
+            return i;
+        }
+    </script>
+</head>
+
+<body>
+    <div id="topBar">
+        <p id="clock"></p>
+    </div>
+
+    <div id="streamInfo">
+        <p>Music stream<br>Random pianoXguitar
+        </p>
+
+        <p>Countdown: <span id="countDown">count</span>s<br>Status: <span id="updates">Late</span></p>
+        <audio id="musicPlayer" loop>
+            <source src="file:///C:/Users/giuda/Desktop/[Duet]%20Tell%20your%20world.mp3" type="audio/ogg">
+        </audio>
+    </div>
+
+    <div id="bottomBar">
+        <div id="progressBar">
+
+        </div>
+    </div>
+
+    <script>
+        //run
+        clock();
+    </script>
+</body>
+<html>
