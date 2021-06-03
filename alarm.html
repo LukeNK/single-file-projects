@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wake up alarm</title>
+    <style></style>
+</head>
+
+<body id="mainBody" style="background-color: #4f4f4f;">
+    <input id="hour">
+    <button onclick="this.style.display = 'none';startAlarm()">Start alarm</button>
+</body>
+<script>
+    let slowSong = new Audio('https://cdn.discordapp.com/attachments/736837084341600257/849859259281965077/WIP_Kataware_Doki.mp3');
+    let fastSong = new Audio('file:///C:/Users/giuda/Downloads/[EDM]%20Lois%20-%20Tiramisu.mp3');
+    let countInterval;
+    let bgS = {
+        r: 0,
+        g: 0,
+        b: 0
+    };
+    let bgE = {
+        r: 254,
+        g: 222,
+        b: 59
+    }
+
+    function getRGBString(c) {
+        return `rgb(${c.r}, ${c.g}, ${c.b})`
+    }
+
+    function startAlarm() {
+        document.getElementById('mainBody').style.backgroundColor = getRGBString(bgS);
+        document.getElementById('hour').style.display = 'none';
+        let countTime = parseInt(parseFloat(document.getElementById('hour').value) * 60 * 60 * 1000);
+        countInterval = setTimeout(endFunction, countTime);
+        console.log('Started alarm: ' + countTime);
+    }
+
+    function endFunction() {
+        document.onclick = function() {
+            slowSong.pause();
+        }
+        slowSong.volume = 0;
+        slowSong.play();
+
+        console.log(`Fast song play after: ${slowSong.duration*1000}`)
+        setTimeout(() => {
+            fastSong.play();
+        }, slowSong.duration * 1000);
+
+        let countTime = 0;
+        let dif = {
+            r: bgE.r - bgS.r,
+            g: bgE.g - bgS.g,
+            b: bgE.b - bgS.b
+        }
+        console.log(dif);
+        let volInter = setInterval(() => {
+            countTime++;
+            slowSong.volume = countTime / 100;
+            document.getElementById('mainBody').style.backgroundColor = getRGBString({
+                r: dif.r * countTime / 100,
+                g: dif.g * countTime / 100,
+                b: dif.b * countTime / 100
+            })
+            if (countTime == 100) {
+                console.log('Max vol');
+                clearInterval(volInter)
+            };
+        }, 1000);
+    }
+</script>
+<html>
