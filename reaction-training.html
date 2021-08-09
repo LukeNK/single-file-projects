@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction train</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            overflow-y: visible;
+            background-color: black;
+            color: white;
+            overflow-y: hidden;
+        }
+        
+        p {
+            margin-top: 0;
+        }
+        
+        #display {
+            height: 20vh;
+        }
+        
+        #main button {
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            font-size: xx-large;
+            margin: 0;
+            height: 80vh;
+            width: 50%;
+            border: none;
+            border-radius: 0;
+            float: left;
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="display" onclick="window.location.href = window.location.href">
+        <p>Release (ms): <span id="release"></span><br>Press (ms): <span id="press"></span>
+        </p>
+    </div>
+    <div id="main">
+        <button id="l">Left</button>
+        <button id="r">Right</button>
+    </div>
+
+</body>
+<script>
+    // WARNING: BAD CODE AHEAD
+    let cf = { // configs
+        lBtn: 'CapsLock',
+        rBtn: 'Enter',
+        eBtn: ' ' // End button (press to complete test)
+    }
+    let pressTime, curTimeOut, side, expectRelease, ready = {};
+
+    // Yellow color
+    document.getElementById('l').style.backgroundColor = document.getElementById('r').style.backgroundColor = 'yellow';
+
+    function startTest() {
+        console.log('New test');
+        document.getElementById('l').style.backgroundColor = document.getElementById('r').style.backgroundColor = '';
+        document.onkeyup = released;
+        curTimeOut = setTimeout(() => {
+            expectRelease = true;
+            side = (Math.random() * 2 < 1) ? 'l' : 'r';
+            document.getElementById(side).style.backgroundColor = 'green';
+            pressTime = +new Date();
+        }, Math.round(Math.random() * 2000) + 500);
+    }
+
+    document.onkeydown = ev => {
+        pressed(ev.key)
+    }
+
+    function pressed(btn) {
+        if (btn == cf.lBtn || btn == cf.rBtn) ready[btn] = true;
+        if (ready[cf.lBtn] && ready[cf.rBtn] && !curTimeOut) { // use interval to make sure no start when there is a test running
+            startTest();
+            return
+        };
+        if (btn == cf.eBtn) {
+            document.getElementById('press').innerHTML += new Date() - pressTime;
+            document.getElementById('press').innerHTML += ' ';
+            ready[cf.lBtn] = ready[cf.rBtn] = curTimeOut = false;
+            document.getElementById('l').style.backgroundColor = document.getElementById('r').style.backgroundColor = 'yellow';
+        }
+    }
+
+    function released(ev) {
+        document.onkeyup = undefined;
+        if (((ev.key == cf.lBtn && side == 'l') || (ev.key == cf.rBtn && side == 'r')) && expectRelease) {
+            document.getElementById('release').innerHTML += new Date() - pressTime;
+            document.getElementById('release').innerHTML += ' ';
+            expectRelease = false;
+        } else {
+            document.getElementById('release').innerHTML += '[FAIL]False release ';
+            let reason;
+            if (!expectRelease) {
+                reason = 'Release before light'
+            } else if (!(ev.key == cf.lBtn && side == 'l') || !(ev.key == cf.rBtn && side == 'r')) {
+                reason = 'Wrong release hand'
+            }
+            document.getElementById('display').innerHTML += `<h1>Fail because: ${reason}</h1>`;
+            setInterval(() => {
+                document.getElementById('display').style.backgroundColor = (document.getElementById('display').style.backgroundColor) ? '' : 'red';
+            }, 500)
+            console.table({
+                'Early release:': !expectRelease,
+                'Release hand': (side == 'l') ? 'Left' : 'Right',
+                'Released hand': (ev.key == cf.lBtn) ? 'Left' : 'Right'
+            })
+        }
+    }
+</script>
+<html>
