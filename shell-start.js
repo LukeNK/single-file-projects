@@ -10,7 +10,7 @@ const cloudDecode = {
     'OVC': "Full cloud",
     'OVX': "Vertical visibility"
 };
-const ICAO = 'VVNB';
+const ICAO = 'CYVR';
 
 function tD(a) {
     if (a < 10) return '0' + a;
