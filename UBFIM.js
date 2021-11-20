@@ -6,7 +6,6 @@ for (let l1 = 0; l1 < 11; l1++) mem.push(false);
 function toBin(n) {
     n = n.toString(2);
     while (n.length < 8) n = '0' + n;
-    console.log(n);
     return n;
 }
 
