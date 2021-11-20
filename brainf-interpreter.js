@@ -1,10 +1,10 @@
-let inp = '', cur = 0; // input, read cursor
+let inp = '';// input, read cursor
+let stdin = '', cur = 0; // manual input, character count
 let mem = [0], pnt = 0; // memory, pointer
 let out = ''; // output
 
 // sanitize
 inp = inp.replace(/\w*/g, '');
-inp = inp.replace(/,/g, '');
 
 let temp = 0;
 for (let l1 = 0; l1 < inp.length; l1++) {
@@ -35,6 +35,10 @@ function bf(inp) {
             case '.':
                 out += String.fromCharCode(mem[pnt]);
                 break
+            case ',':
+                mem[pnt] = stdin.charCodeAt(cur);
+                cur++;
+                break;
             case '[':
                 // search for matching ']'
                 let match = 1, l1 = pos + 1;
