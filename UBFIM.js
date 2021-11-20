@@ -1,4 +1,4 @@
-let inp = '', out = '';
+let inp = '((((((((<<<<<<<<<<<<<<<<<', out = '';
 let stdin = '', pos = 0; // manual input and position
 let mem = [], pnt = 2;
 for (let l1 = 0; l1 < 11; l1++) mem.push(false);
@@ -29,6 +29,7 @@ for (let cur = 0; cur < inp.length; cur++) {
             if (pnt == mem.length) mem.push(0)
             mem[pnt] = !mem[pnt];
             if (!mem[pnt]) cur++;
+            break;
         default:
             break;
     }
@@ -49,7 +50,6 @@ for (let cur = 0; cur < inp.length; cur++) {
     }
     if (cur + 1 == inp.length) {
         if (mem[pnt]) cur = 0;
-        else break;
     }
 }
 
