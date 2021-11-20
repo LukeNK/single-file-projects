@@ -1,7 +1,6 @@
 let inp = '', out = '';
 let stdin = '', pos = 0; // manual input and position
 let mem = [false, false, false, false, false, false, false, false, false, false, false], pnt = 2;
-inp = inp.replace(/\w*/g, '');
 
 function toBin(n) {
     n = n.toString(2);
