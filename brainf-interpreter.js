@@ -1,4 +1,4 @@
-let inp = '';// input, read cursor
+let inp = ``;// input, read cursor
 let stdin = '', cur = 0; // manual input, character count
 let mem = [0], pnt = 0; // memory, pointer
 let out = ''; // output
@@ -48,7 +48,6 @@ function bf(inp) {
                     if (!match) break
                 }
                 let inside = inp.slice(pos + 1, l1);
-                console.log(inside)
 
                 while (mem[pnt]) 
                     bf(inside)

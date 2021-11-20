@@ -1,4 +1,4 @@
-let inp = '((((((((<<<<<<<<<<<<<<<<<', out = '';
+let inp = '', out = ''; // put your code here
 let stdin = '', pos = 0; // manual input and position
 let mem = [], pnt = 2;
 for (let l1 = 0; l1 < 11; l1++) mem.push(false);
