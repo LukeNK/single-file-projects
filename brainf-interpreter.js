@@ -44,7 +44,6 @@ function bf(inp) {
                     if (!match) break
                 }
                 let inside = inp.slice(pos + 1, l1);
-                console.log(inside)
 
                 while (mem[pnt]) 
                     bf(inside)
