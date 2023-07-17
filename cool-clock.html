@@ -81,9 +81,10 @@
     }
 
     setInterval(() => {
-        let date = new Date();
-        let handSpacing = 100; // initial spacing
-        let secFactor = 1, secPass = 0;
+        let date = new Date(),
+            handSpacing = 100, // initial spacing
+            secFactor = 1, secPass = 0;
+            
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 10000, 10000)
         for (const l1 in Hands) {
