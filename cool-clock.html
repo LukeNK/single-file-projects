@@ -2,16 +2,36 @@
 <head>
     <title>Clock</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa&display=swap');
+
         html, body {
             width:  100%;
             height: 100%;
             margin: 0;
             overflow: hidden;
         }
+
+        div {
+            position: fixed;
+            z-index: 2;
+            width: 98vw; /* Full width (cover the whole page) */
+            height: 98vh; /* Full height (cover the whole page) */
+            top: 1vh; bottom: 1vh;
+            left: 1vw; right: 1vw;
+        }
+
+        h1, h1, h2 {
+            font-family: 'Comfortaa', cursive;
+            color: #FDFFFC;
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    <div>
+        <h1>Circular clock (just a fancy clock)</h1>
+        <h1><span id="getHours"></span>:<span id="getMinutes"></span>:<span id="getSeconds"></span></h1>
+    </div>
 </body>
 <script>
     const ctx = document.getElementById("canvas").getContext("2d");
@@ -27,6 +47,11 @@
     const bgColor = '#2B303A'
     const HandSpacing = 50;
     const Hands = [
+        // {
+        //     get: 'getMilliseconds',
+        //     total: 1000,
+        //     color: '#726DA8'
+        // },
         {
             get: 'getSeconds',
             total: 60,
@@ -51,6 +76,10 @@
     // ctx.lineCap = "round";
     ctx.lineWidth = 25;
 
+    function padZero(s) {
+        return (s >= 10)? s : '0' + s;
+    }
+
     setInterval(() => {
         let date = new Date();
         let handSpacing = 100; // initial spacing
@@ -59,20 +88,26 @@
         ctx.fillRect(0, 0, 10000, 10000)
         for (const l1 in Hands) {
             const hand = Hands[l1];
+            const yOffset = origin.y - handSpacing;
 
             secPass += date[hand.get]() * secFactor;
             secFactor *= hand.total;
 
             ctx.strokeStyle = hand.color;
-            ctx.moveTo(origin.x, origin.y - handSpacing);
+            ctx.moveTo(origin.x, yOffset);
             ctx.beginPath();
-            ctx.ellipse(
-                origin.x, origin.y, 
-                handSpacing, handSpacing, - PI / 2, 
-                0, (secPass/secFactor) * (2 * PI)
-            );
+            ctx.ellipse(origin.x, origin.y, handSpacing, handSpacing, - PI / 2, 0, (secPass/secFactor) * (2 * PI));
             ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(origin.x + 1, yOffset); // 1 pixel to remove the gap
+            ctx.lineTo(origin.x - (1 - (secPass/secFactor)) * origin.x, yOffset)
+            ctx.stroke()
+
             handSpacing += HandSpacing;
+
+            try { document.getElementById(hand.get).innerText = padZero(date[hand.get]()); } catch {}
         }
     }, 1000)
+
 </script>
