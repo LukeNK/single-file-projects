@@ -1,138 +1,78 @@
 <!DOCTYPE html>
-<html>
-
 <head>
     <title>Clock</title>
-
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --background-color: rgb(53, 53, 53);
-            --text-color: #f3f3f3;
-            /*Color update in script, not here*/
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
+        html, body {
+            width:  100%;
+            height: 100%;
             margin: 0;
-            font-family: 'Comfortaa', cursive;
-            font-size: 5vh;
-            background-color: var(--background-color);
-            color: var(--text-color);
-        }
-
-        #mainDisplay {
-            margin: 0;
-            top: 0px;
-            left: 0px;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        #mainDisplay * {
-            border: none;
-            text-align: center;
+            overflow: hidden;
         }
     </style>
 </head>
-
 <body>
-    <table id="mainDisplay">
-    </table>
-    <script>
-        "use strict";
-        let LASTTIME;
-        let invert = false;
-        setInterval(() => {
-            let date = new Date();
-            updateDisplay(
-                digitHandle(date.getHours()),
-                digitHandle(date.getMinutes()),
-                digitHandle(date.getSeconds())
-            );
-        }, 1000);
-
-        let wakeLock = null;
-        if ('wakeLock' in navigator) {
-            try {
-                wakeLock = navigator.wakeLock.request('screen');
-                console.log('Wake Lock is active!');
-            } catch (err) {
-                console.log(`${err.name}, ${err.message}`);
-            }
-        }
-
-        function digitHandle(inp) {
-            if (typeof(inp) == "number") {
-                inp = String(inp);
-            }
-            return (inp.length > 1) ? inp : `0${inp}`;
-        }
-
-        async function updateDisplay(hour, minute, second) {
-            //allow the clock to continue
-            if (!(hour | minute | second)) {
-                //no data (init)
-                for (let l1 = 0; l1 < 10; l1++) {
-                    let tr = document.createElement('tr');
-                    for (let l2 = 0; l2 < 6; l2++) {
-                        let td = document.createElement('td')
-                        td.setAttribute('id', `${l2}${l1}`)
-                        td.innerHTML = l1;
-                        td.style.backgroundColor = 'var(--background-color)';
-                        td.style.color = 'var(--background-color)';
-                        tr.appendChild(td);
-                    }
-                    document.getElementById('mainDisplay').appendChild(tr);
-                }
-                console.log('[INFO] Init completed');
-                let date = new Date();
-                hour = digitHandle(date.getHours());
-                minute = digitHandle(date.getMinutes());
-                second = digitHandle(date.getSeconds());
-            }
-
-            let root = document.documentElement;
-            if (parseInt(hour) < 5 || parseInt(hour) > 12) {
-                root.style.setProperty('--background-color', 'rgb(53, 53, 53)');
-                root.style.setProperty('--text-color', '#f3f3f3')
-            } else {
-                root.style.setProperty('--background-color', 'white');
-                root.style.setProperty('--text-color', '#ff60a8');
-            }
-            if (invert) {
-                let temp = root.style.getPropertyValue('--background-color');
-                root.style.setProperty(
-                    '--background-color',
-                    root.style.getPropertyValue('--text-color')
-                )
-                root.style.setProperty('--text-color', temp)
-            }
-
-            let time = hour + minute + second;
-            for (let l1 = 0; l1 < 6; l1++) {
-                if (LASTTIME && (LASTTIME[l1] != time[l1])) {
-                    let curHigh = document.getElementById(`${l1}${LASTTIME[l1]}`);
-                    curHigh.style.backgroundColor = 'var(--background-color)';
-                    curHigh.style.color = 'var(--background-color)';
-                }
-                let nowHigh = document.getElementById(`${l1}${time[l1]}`);
-                nowHigh.style.backgroundColor = 'var(--text-color)';
-                nowHigh.style.color = 'var(--background-color)';
-            }
-            LASTTIME = time;
-        }
-
-        document.addEventListener('click', (event) => {
-            invert = !invert;
-        })
-        updateDisplay();
-    </script>
+    <canvas id="canvas"></canvas>
 </body>
+<script>
+    const ctx = document.getElementById("canvas").getContext("2d");
+    ctx.canvas.width  = window.innerWidth;
+    ctx.canvas.height = window.innerHeight;
+    const origin = {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+    }
+    const PI = Math.PI;
 
-</html>
+    // style of the hands
+    const bgColor = '#2B303A'
+    const HandSpacing = 50;
+    const Hands = [
+        {
+            get: 'getSeconds',
+            total: 60,
+            color: '#E71D36'
+        },
+        {
+            get: 'getMinutes',
+            total: 60,
+            color: '#FF9F1C'
+        },
+        {
+            get: 'getHours',
+            total: 24,
+            color: '#2EC4B6'
+        },
+        {
+            get: 'getDay',
+            total: 7,
+            color: '#FDFFFC'
+        },
+    ];
+    // ctx.lineCap = "round";
+    ctx.lineWidth = 25;
+
+    setInterval(() => {
+        let date = new Date();
+        let handSpacing = 100; // initial spacing
+        let secFactor = 1, secPass = 0;
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 10000, 10000)
+        for (const l1 in Hands) {
+            const hand = Hands[l1];
+
+            secPass += date[hand.get]() * secFactor;
+            secFactor *= hand.total;
+
+            ctx.strokeStyle = hand.color;
+            ctx.moveTo(origin.x, origin.y - handSpacing);
+            ctx.beginPath();
+            ctx.ellipse(
+                origin.x, origin.y, 
+                handSpacing, handSpacing, - PI / 2, 
+                0, (secPass/secFactor) * (2 * PI)
+            );
+            ctx.stroke();
+            handSpacing += HandSpacing;
+        }
+    }, 1000)
+</script>
