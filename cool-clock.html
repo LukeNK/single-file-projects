@@ -9,6 +9,7 @@
             height: 100%;
             margin: 0;
             overflow: hidden;
+            background-color: #2B303A;
         }
 
         div {
@@ -22,6 +23,7 @@
 
         h1, h1, h2 {
             font-family: 'Comfortaa', cursive;
+            text-align: center;
             color: #FDFFFC;
         }
     </style>
@@ -29,7 +31,6 @@
 <body>
     <canvas id="canvas"></canvas>
     <div>
-        <h1>Circular clock (just a fancy clock)</h1>
         <h1><span id="getHours"></span>:<span id="getMinutes"></span>:<span id="getSeconds"></span></h1>
     </div>
 </body>
@@ -63,13 +64,13 @@
             color: '#FF9F1C'
         },
         {
-            get: 'getHours',
-            total: 24,
+            get: 'getHalfHours',
+            total: 12,
             color: '#2EC4B6'
         },
         {
-            get: 'getDay',
-            total: 7,
+            get: 'getDayPart',
+            total: 2,
             color: '#FDFFFC'
         },
     ];
@@ -84,6 +85,9 @@
         let date = new Date(),
             handSpacing = 100, // initial spacing
             secFactor = 1, secPass = 0;
+
+        date.getHalfHours = () => Math.round(date.getHours() % 12);
+        date.getDayPart = () => date.getHours() % 2;
             
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 10000, 10000)
@@ -109,6 +113,7 @@
 
             try { document.getElementById(hand.get).innerText = padZero(date[hand.get]()); } catch {}
         }
+        document.getElementById('getHours').innerText = padZero(date.getHours());
     }, 1000)
 
 </script>
