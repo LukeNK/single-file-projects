@@ -98,7 +98,7 @@
             }
 
             let root = document.documentElement;
-            if (parseInt(hour) < 5 | parseInt(hour) > 12) {
+            if (parseInt(hour) < 5 || parseInt(hour) > 12) {
                 root.style.setProperty('--background-color', 'rgb(53, 53, 53)');
                 root.style.setProperty('--text-color', '#f3f3f3')
             } else {
