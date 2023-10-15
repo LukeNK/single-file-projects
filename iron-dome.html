@@ -85,14 +85,18 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(3500, 3000),
                 new Point(1000, 1000),
+                new Point(3500, 3000),
             ],
             system: () => {
-                let enemyRock = Rocket.list.filter(r => r.team === 1);
-                Rocket.list
-                    .filter(r => r.team === 0)
-                    .forEach(rocket => {
+                let enemyRock = Rocket.list.filter(r => r.team === 1),
+                    friendRock = Rocket.list.filter(r => r.team === 0);
+
+                    
+                for (let l1 = friendRock.length - enemyRock.length; l1 < 0; l1++)
+                    new Rocket(new Vector(1000, random() * 360), 0);
+
+                friendRock.forEach(rocket => {
                         let min = Infinity, minRock;
                         for (const erock of enemyRock) {
                             let dis = Vector.fromPoints(rocket.pos, erock.pos);
@@ -267,10 +271,6 @@
     }
 
     // debug
-    new Rocket(new Vector(0, 90), 0);
-    new Rocket(new Vector(2000, 0), 0);
-    new Rocket(new Vector(1000, 90), 0);
-    new Rocket(new Vector(1000, 0), 0);
 
 
     new Rocket(new Vector(0, 270), 1);
@@ -281,7 +281,7 @@
 
     let sim = setInterval(() => {
         can.tick();
-        if (Rocket.list.length <= 1) clearInterval(sim);
+        if (Rocket.list.filter(r => r.team === 1).length <= 0) clearInterval(sim);
     }, 100);
     // setInterval(() => {
     //     new Rocket(new Vector(1000, 90), new Point(0, 0), 0)
