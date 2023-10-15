@@ -92,7 +92,15 @@
                 Rocket.list
                     .filter(r => r.team === 0)
                     .forEach(rocket => {
-                        rocket.tar = randomItem(enemyRock).pos.copy();
+                        let min = Infinity, minRock;
+                        for (const erock of enemyRock) {
+                            let dis = Vector.fromPoints(rocket.pos, erock.pos);
+                            if (dis.len < min) {
+                                min = dis.len;
+                                minRock = erock.pos;
+                            }
+                        }
+                        rocket.tar = minRock.copy();
                     });
             }
         },
@@ -193,7 +201,7 @@
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
-                ctx.lineWidth = 10;
+                ctx.lineWidth = 1; // ############################################### MAKE THE NUMBER SMALL UNTIL HAVE BETTER SYSTEM
                 ctx.strokeStyle = '#A63446'
             } else if (type == 'e') {
                 // explosion
