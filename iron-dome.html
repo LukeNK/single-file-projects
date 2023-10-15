@@ -6,7 +6,7 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas" height="700" width="700"></canvas>
+    <canvas id="canvas" height="700" width="1000"></canvas>
 </body>
 <script>
     // constants
@@ -72,69 +72,58 @@
             let x = p2.x - p1.x, y = p2.y - p1.y;
             return new Vector(
                 sqrt(x*x + y*y),
-                atan2(y, x) * 180 / PI
+                toDeg(atan2(y, x))
             );
         }
     }
-
-    class Target {
-        static system = [
-            () => {
-                // defense
-                
-            },
-            () => {
-                // attacker (doesn't need to do anything really)
-
-            }
-        ]
-        static list = [
-            [],
-            []
-        ]
-        constructor(location, team) {
-            // which team own this target (AKA this is NOT the target of that team)
-            if (!(location instanceof Point)) throw TypeError('Target location must be a point');
-            this.x = location.x; this.y = location.y;
-            Target.list.push(this);
-        }
-    }
-
     // rocket properties
     const rockProp = [
         {
-            maxSpeed: 1000, // pixels per tick
-            turnDeg: 40, // turn degree per tick
+            maxSpeed: 100, // pixels per tick
+            turnDeg: 7, // turn degree per tick
             fuel: 10000, // how many pixels before out of fuel
-            exRad: 100, // explosion radius
+            exRad: 150, // explosion radius
             start: [
-                new Point(3500, 3500)
-            ]
+                new Point(3500, 3500),
+                new Point(1000, 1000),
+            ],
+            system: () => {
+                let enemyRock = Rocket.list.filter(r => r.team === 1);
+                Rocket.list
+                    .filter(r => r.team === 0)
+                    .forEach(rocket => {
+                        rocket.tar = randomItem(enemyRock).pos.copy();
+                    });
+            }
         },
         {
-            maxSpeed: 1000,
-            turnDeg: 40, 
-            fuel: 10000,
-            exRad: 50,
+            maxSpeed: 100,
+            turnDeg: 5, 
+            fuel: 50000,
+            exRad: 500,
             start: [
                 new Point(7000, 7000)
-            ]
+            ],
+            system: () => {
+                Rocket.list
+                    .filter(r => r.team === 1)
+                    .forEach(rocket => {
+                        rocket.tar = randomItem(rockProp[0].start)
+                    })
+            }
         }
     ]
 
     class Rocket {
         static list = [];
-        constructor(vector, target, team) {
+        constructor(vector, team) {
             // which team own this rocket
-            if (!(
-                (vector instanceof Vector) 
-                && (target instanceof Point)
-                && (typeof team == 'number')
-            )) throw TypeError('Rocket constructor types invalid');
+            if (!((vector instanceof Vector) && (typeof team == 'number')))
+                throw TypeError('Rocket constructor types invalid');
 
-            this.vec = vector; this.tar = target; this.team = team;
+            this.vec = vector; this.tar; this.team = team;
             for (const property in rockProp[team]) {
-                if (property == 'start') continue;
+                if (property == 'start' || property == 'system') continue;
                 // copy properties
                 const value = rockProp[team][property];
                 this[property] = value;
@@ -158,32 +147,27 @@
             // is in the explosion range, using Vector.fromPoint() to calculate the distance
             let dis = Vector.fromPoints(this.pos, this.tar);
             if (dis.len <= this.exRad || this.fuel <= 0)
-                return this.destroy();
+                return this.destroy(this);
 
             // calculate next route using commander of each team (aka turn to the target)             
             let tarVec = Vector.fromPoints(this.pos, this.tar); // use vector to get expected route
-            let d = tarVec.dir - this.vec.dir // difference between expected place
+            let d = tarVec.dir - this.vec.dir; // difference between expected place
+            if (abs(d) > 180) {
+                d = (this.vec.dir - tarVec.dir)
+            }
             // check expected turn
-            this.vec.dir += min(d, this.turnDeg); 
+            this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
             this.vec.len = min(tarVec.len, this.maxSpeed);
         }
-        destroy(chainList, layer) {
-            chainList = chainList || []; // if this is the first rocket in the chain
-            layer = layer || 0; // layers of recursive
+        destroy() {            
+            this.destroyed = true;
 
             for (const rocket of Rocket.list) {
-                if (chainList.indexOf(rocket) != -1) continue; // the rocket was triggered
+                if (rocket.destroyed == true) continue; // the rocket was triggered
                 let dis = Vector.fromPoints(this.pos, rocket.pos);
                 if (this.exRad < dis.len) continue; // out of explosion radius
-                chainList.push(rocket);
-                rocket.destroy(chainList, layer + 1);
+                rocket.destroy(rocket);
             }
-
-            if (layer != 0) return; // not the outer layer, return
-            console.table(chainList)
-            for (const rocket of chainList)
-                // mark as exploded to remove from the array latter
-                rocket.exploded = true;
         }
     }
 </script>
@@ -232,20 +216,23 @@
             ctx.stroke();
         },
         tick: () => {
-            ctx.rect(0, 0, 7000, 7000);
+            ctx.rect(0, 0, 10000, 10000);
             ctx.fill();
 
-            Target.system[0]();
-            Target.system[1]();
+            rockProp[0].system();
+            rockProp[1].system()
 
             for (let l1 = 0; l1 < Rocket.list.length; l1++) {
                 let rocket = Rocket.list[l1];
+                let p0 = rocket.pos.copy();
                 rocket.tickMove();
                 let p2 = rocket.getNextPoint();
+
+                can.line(rocket.pos, p0, 'e'); // trail
                 can.line(rocket.pos, p2, 'r');
                 can.line(rocket.pos, rocket.tar, rocket.team);
 
-                if (rocket.exploded == true) {
+                if (rocket.destroyed == true) {
                     can.circle(rocket.pos, rocket.exRad); // draw
                     Rocket.list.splice(l1, 1);
                     l1--;
@@ -255,10 +242,18 @@
     }
 
     // debug
-    let v1 = new Vector(1000, 0)
-    let r1 = new Rocket(v1, new Point(100, 100), 0);
-    let v2 = new Vector(1000, 0)
-    let r2 = new Rocket(v2, new Point(100, 100), 1);
+    new Rocket(new Vector(1000, 0), 0);
+    new Rocket(new Vector(1000, 90), 0);
 
+    new Rocket(new Vector(1000, 270), 1);
+    new Rocket(new Vector(1000, 179), 1);
+
+    let sim = setInterval(() => {
+        can.tick();
+        if (Rocket.list.length <= 1) clearInterval(sim);
+    }, 100);
+    // setInterval(() => {
+    //     new Rocket(new Vector(1000, 90), new Point(0, 0), 0)
+    // }, 1000);
     can.tick()
 </script>
