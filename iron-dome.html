@@ -85,7 +85,7 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(3500, 1000),
+                new Point(3500, 3000),
                 new Point(1000, 1000),
             ],
             system: () => {
@@ -106,13 +106,14 @@
             }
         },
         {
-            maxSpeed: 100,
+            maxSpeed: 75,
             acceleration: 10,
             turnDeg: 5, 
             fuel: 50000,
             exRad: 500,
             start: [
-                new Point(7000, 7000)
+                new Point(6000, 6000),
+                new Point(6000, 1000)
             ],
             system: () => {
                 Rocket.list
@@ -267,7 +268,7 @@
 
     // debug
     new Rocket(new Vector(0, 90), 0);
-    new Rocket(new Vector(0, 0), 0);
+    new Rocket(new Vector(2000, 0), 0);
     new Rocket(new Vector(1000, 90), 0);
     new Rocket(new Vector(1000, 0), 0);
 
