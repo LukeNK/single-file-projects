@@ -1,0 +1,230 @@
+<head>
+    <style>
+        body {
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" height="700" width="700"></canvas>
+</body>
+<script>
+    // constants
+    const PI = Math.PI,
+        sqrt = Math.sqrt,
+        sin = Math.sin,
+        cos = Math.cos,
+        atan2 = Math.atan2,
+        random = Math.random,
+        floor = Math.floor;
+    const toRad = x => x * PI / 180,
+        toDeg = x => x * 180 / PI;
+
+    // utils
+    const randomItem = arr => arr[floor((random() * arr.length))];
+
+    // physics engine
+    class Point {
+        constructor(x, y) {
+            if (typeof x != "number" || typeof y != "number")
+                throw TypeError('Point constructor must be a number');
+            this.x = x;
+            this.y = y;
+        }
+        isEqual(p1) {
+            return (p1.x == p2.x) && (p1.y == p2.y)
+        }
+        copy() {
+            // copy to return new point without reference
+            return new Point(this.x, this.y);
+        }
+    }
+
+    class Vector {
+        constructor(length, direction) {
+            if (typeof length != "number" || typeof direction != "number")
+                throw TypeError('Vector constructor must be a number');
+            if (!(-360 < direction && direction < 360))
+                throw RangeError('Vector direction range must be within (-360, 360)');
+            if (direction < 0) direction = 360 + direction; // convert to standard angle
+            this.len = length;
+            this.dir = direction;
+        }
+        toPoints() {
+            // convert to the next relative points
+            // cos theta = (x/l)
+            let dir = this.dir, len = this.len;
+            return new Point(
+                cos(toRad(dir)) * len,
+                sin(toRad(dir)) * len
+            )
+        }
+        static fromPoints(p1, p2) {
+            // generate vector from points
+            let x = p2.x - p1.x, y = p2.y - p1.y;
+            return new Vector(
+                sqrt(x*x + y*y),
+                atan2(y, x) * 180 / PI
+            );
+        }
+    }
+
+    class Target {
+        static list = [
+            [],
+            []
+        ]
+        constructor(location, team) {
+            // which team own this target (AKA this is NOT the target of that team)
+            if (!(location instanceof Point)) throw TypeError('Target location must be a point');
+            this.x = location.x; this.y = location.y;
+            Target.list.push(this);
+        }
+    }
+
+    // rocket properties
+    const rockProp = [
+        {
+            maxSpeed: 100, // pixels per tick
+            turnDeg: 30, // turn degree per tick
+            fuel: 10000, // how many pixels before out of fuel
+            exRad: 100, // explosion radius
+            start: [
+                new Point(0, 0)
+            ]
+        },
+        {
+            maxSpeed: 100,
+            turnDeg: 30, 
+            fuel: 10000,
+            exRad: 50,
+            start: [
+                new Point(7000, 7000)
+            ]
+        }
+    ]
+
+    class Rocket {
+        static list = [];
+        constructor(vector, target, team) {
+            // which team own this rocket
+            if (!(
+                (vector instanceof Vector) 
+                && (target instanceof Point)
+                && (typeof team == 'number')
+            )) throw TypeError('Rocket constructor types invalid');
+
+            this.vec = vector; this.tar = target; this.team = team;
+            for (const property in rockProp[team]) {
+                if (property == 'start') continue;
+                // copy properties
+                const value = rockProp[team][property];
+                this[property] = value;
+            }
+
+            // chose random start position
+            this.pos = randomItem(rockProp[team].start).copy();
+            
+            Rocket.list.push(this);
+        }
+        getNextPoint() {
+            // get the next point with absolute coord
+            let x = this.pos.x, y = this.pos.y,
+                rel = this.vec.toPoints();
+            return new Point(x + rel.x, y + rel.y)
+        }
+        tickMove() {
+            this.pos = this.getNextPoint(); // go to next point
+            this.fuel -= this.vec.len; // reduce fuel
+
+            // is in the explosion range, using Vector.fromPoint() to calculate the distance
+            let dis = Vector.fromPoints(this.pos, this.tar);
+            if (dis.len <= this.exRad || this.fuel <= 0)
+                return this.destroy();
+
+            // calculate next route using commander of each team
+        }
+        destroy(chainList, layer) {
+            chainList = chainList || []; // if this is the first rocket in the chain
+            layer = layer || 0; // layers of recursive
+
+            for (const rocket of Rocket.list) {
+                if (chainList.indexOf(rocket) != -1) continue; // the rocket was triggered
+                chainList.push(rocket);
+                rocket.destroy(chainList, layer + 1);
+            }
+
+            if (layer != 0) return; // not the outer layer, return
+            for (const rocket of chainList) {
+                // remove from the list
+                can.circle(rocket.pos, rocket.exRad)
+                Rocket.list.splice(Rocket.list.indexOf(rocket), 1);
+            }
+        }
+    }
+</script>
+<script>
+    // display
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.scale(0.1, 0.1)
+
+    let currentStrokeType = ''; // current stroke to optimize
+
+    const can = {
+        setStroke: type => {
+            // https://coolors.co/a63446-fbfef9-0c6291-fa824c-157f1f
+            if (type === currentStrokeType) return; // no need to set again;
+            if (type == 'r') {
+                // rocket
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#fbfef9'
+            } else if (type === 0) {
+                // projected team 0
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#A63446'
+            } else if (type === 1) {
+                // projected team 1
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#0C6291'
+            } else if (type == 'e') {
+                // explosion
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#FA824C'
+            }
+        },
+        line: (p1, p2, type) => {
+            can.setStroke(type)
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+        },
+        circle: (cen, rad) => {
+            // draw a circle with center as a point
+            can.setStroke('e');
+            ctx.beginPath();
+            ctx.arc(cen.x, cen.y, rad, 0, 2 * PI);
+            ctx.stroke();
+        },
+        tick: () => {
+            ctx.rect(0, 0, 7000, 7000);
+            ctx.fill();
+
+            Rocket.list.forEach(rocket => {
+                rocket.tickMove();
+                let p2 = rocket.getNextPoint();
+                can.line(rocket.pos, p2, 'r');
+                can.line(rocket.pos, rocket.tar, rocket.team);
+            });
+        }
+    }
+
+    // debug
+    let v1 = new Vector(1000, 45)
+    let r1 = new Rocket(v1, new Point(100,100), 0);
+    let v2 = new Vector(1000, 250)
+    let r2 = new Rocket(v2, new Point(100,100), 1);
+
+    can.tick()
+</script>
