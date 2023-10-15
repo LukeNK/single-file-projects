@@ -93,8 +93,8 @@
                     friendRock = Rocket.list.filter(r => r.team === 0);
 
                     
-                for (let l1 = friendRock.length - enemyRock.length; l1 < 0; l1++)
-                    new Rocket(new Vector(1000, random() * 360), 0);
+                if (friendRock.length < enemyRock.length)
+                    new Rocket(new Vector(250, random() * 360), 0);
 
                 friendRock.forEach(rocket => {
                         let min = Infinity, minRock;
@@ -210,7 +210,7 @@
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 10;
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
@@ -273,10 +273,30 @@
     // debug
 
 
-    new Rocket(new Vector(0, 270), 1);
-    new Rocket(new Vector(2000, 179), 1);
-    new Rocket(new Vector(1000, 270), 1);
-    new Rocket(new Vector(1000, 179), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
 
 
     let sim = setInterval(() => {
