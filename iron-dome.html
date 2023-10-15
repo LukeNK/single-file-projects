@@ -80,11 +80,12 @@
     const rockProp = [
         {
             maxSpeed: 100, // pixels per tick
+            acceleration: 100, // MAX pixel per tick quare
             turnDeg: 7, // turn degree per tick
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(3500, 3500),
+                new Point(3500, 1000),
                 new Point(1000, 1000),
             ],
             system: () => {
@@ -106,6 +107,7 @@
         },
         {
             maxSpeed: 100,
+            acceleration: 10,
             turnDeg: 5, 
             fuel: 50000,
             exRad: 500,
@@ -159,13 +161,19 @@
 
             // calculate next route using commander of each team (aka turn to the target)             
             let tarVec = Vector.fromPoints(this.pos, this.tar); // use vector to get expected route
-            let d = tarVec.dir - this.vec.dir; // difference between expected place
+
+            // speed stuff
+            let d = tarVec.len - this.vec.len;
+            d = (d < 0)? max(d, -this.acceleration) : min(d, this.acceleration);
+            this.vec.len += d;
+            this.vec.len = min(this.vec.len, this.maxSpeed)
+
+            // direction
+            d = tarVec.dir - this.vec.dir; // difference between expected place
             if (abs(d) > 180) {
                 d = (this.vec.dir - tarVec.dir)
             }
-            // check expected turn
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
-            this.vec.len = min(tarVec.len, this.maxSpeed);
         }
         destroy() {            
             this.destroyed = true;
@@ -207,6 +215,10 @@
                 // explosion
                 ctx.lineWidth = 10;
                 ctx.strokeStyle = '#FA824C'
+            } else if (type == 's') {
+                // start
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#157F1F'
             }
         },
         line: (p1, p2, type) => {
@@ -216,9 +228,9 @@
             ctx.lineTo(p2.x, p2.y);
             ctx.stroke();
         },
-        circle: (cen, rad) => {
+        circle: (cen, rad, type) => {
             // draw a circle with center as a point
-            can.setStroke('e');
+            can.setStroke(type || 'e');
             ctx.beginPath();
             ctx.arc(cen.x, cen.y, rad, 0, 2 * PI);
             ctx.stroke();
@@ -245,16 +257,26 @@
                     Rocket.list.splice(l1, 1);
                     l1--;
                 }
+
+                // draw start places
+                [...rockProp[0].start, ...rockProp[0].start]
+                    .forEach(p => can.circle(p, 50, 's'))
             };
         }
     }
 
     // debug
-    new Rocket(new Vector(1000, 0), 0);
+    new Rocket(new Vector(0, 90), 0);
+    new Rocket(new Vector(0, 0), 0);
     new Rocket(new Vector(1000, 90), 0);
+    new Rocket(new Vector(1000, 0), 0);
 
+
+    new Rocket(new Vector(0, 270), 1);
+    new Rocket(new Vector(2000, 179), 1);
     new Rocket(new Vector(1000, 270), 1);
     new Rocket(new Vector(1000, 179), 1);
+
 
     let sim = setInterval(() => {
         can.tick();
