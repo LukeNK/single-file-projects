@@ -15,6 +15,9 @@
         sin = Math.sin,
         cos = Math.cos,
         atan2 = Math.atan2,
+        abs = Math.abs,
+        min = Math.min,
+        max = Math.max,
         random = Math.random,
         floor = Math.floor;
     const toRad = x => x * PI / 180,
@@ -41,12 +44,17 @@
     }
 
     class Vector {
+        #dir = 0;
+        get dir() {
+            return this.#dir;
+        }
+        set dir(x) {
+            if (x < 0) x = 360 * 10 - abs(x) ; // dumb patch work
+            this.#dir = x % 360;
+        }
         constructor(length, direction) {
             if (typeof length != "number" || typeof direction != "number")
                 throw TypeError('Vector constructor must be a number');
-            if (!(-360 < direction && direction < 360))
-                throw RangeError('Vector direction range must be within (-360, 360)');
-            if (direction < 0) direction = 360 + direction; // convert to standard angle
             this.len = length;
             this.dir = direction;
         }
@@ -70,6 +78,16 @@
     }
 
     class Target {
+        static system = [
+            () => {
+                // defense
+                
+            },
+            () => {
+                // attacker (doesn't need to do anything really)
+
+            }
+        ]
         static list = [
             [],
             []
@@ -85,17 +103,17 @@
     // rocket properties
     const rockProp = [
         {
-            maxSpeed: 100, // pixels per tick
-            turnDeg: 30, // turn degree per tick
+            maxSpeed: 1000, // pixels per tick
+            turnDeg: 40, // turn degree per tick
             fuel: 10000, // how many pixels before out of fuel
             exRad: 100, // explosion radius
             start: [
-                new Point(0, 0)
+                new Point(3500, 3500)
             ]
         },
         {
-            maxSpeed: 100,
-            turnDeg: 30, 
+            maxSpeed: 1000,
+            turnDeg: 40, 
             fuel: 10000,
             exRad: 50,
             start: [
@@ -142,7 +160,12 @@
             if (dis.len <= this.exRad || this.fuel <= 0)
                 return this.destroy();
 
-            // calculate next route using commander of each team
+            // calculate next route using commander of each team (aka turn to the target)             
+            let tarVec = Vector.fromPoints(this.pos, this.tar); // use vector to get expected route
+            let d = tarVec.dir - this.vec.dir // difference between expected place
+            // check expected turn
+            this.vec.dir += min(d, this.turnDeg); 
+            this.vec.len = min(tarVec.len, this.maxSpeed);
         }
         destroy(chainList, layer) {
             chainList = chainList || []; // if this is the first rocket in the chain
@@ -150,16 +173,17 @@
 
             for (const rocket of Rocket.list) {
                 if (chainList.indexOf(rocket) != -1) continue; // the rocket was triggered
+                let dis = Vector.fromPoints(this.pos, rocket.pos);
+                if (this.exRad < dis.len) continue; // out of explosion radius
                 chainList.push(rocket);
                 rocket.destroy(chainList, layer + 1);
             }
 
             if (layer != 0) return; // not the outer layer, return
-            for (const rocket of chainList) {
-                // remove from the list
-                can.circle(rocket.pos, rocket.exRad)
-                Rocket.list.splice(Rocket.list.indexOf(rocket), 1);
-            }
+            console.table(chainList)
+            for (const rocket of chainList)
+                // mark as exploded to remove from the array latter
+                rocket.exploded = true;
         }
     }
 </script>
@@ -174,7 +198,7 @@
     const can = {
         setStroke: type => {
             // https://coolors.co/a63446-fbfef9-0c6291-fa824c-157f1f
-            if (type === currentStrokeType) return; // no need to set again;
+            if (type === currentStrokeType) return; // no need to set again
             if (type == 'r') {
                 // rocket
                 ctx.lineWidth = 10;
@@ -182,11 +206,11 @@
             } else if (type === 0) {
                 // projected team 0
                 ctx.lineWidth = 10;
-                ctx.strokeStyle = '#A63446'
+                ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
                 ctx.lineWidth = 10;
-                ctx.strokeStyle = '#0C6291'
+                ctx.strokeStyle = '#A63446'
             } else if (type == 'e') {
                 // explosion
                 ctx.lineWidth = 10;
@@ -211,20 +235,30 @@
             ctx.rect(0, 0, 7000, 7000);
             ctx.fill();
 
-            Rocket.list.forEach(rocket => {
+            Target.system[0]();
+            Target.system[1]();
+
+            for (let l1 = 0; l1 < Rocket.list.length; l1++) {
+                let rocket = Rocket.list[l1];
                 rocket.tickMove();
                 let p2 = rocket.getNextPoint();
                 can.line(rocket.pos, p2, 'r');
                 can.line(rocket.pos, rocket.tar, rocket.team);
-            });
+
+                if (rocket.exploded == true) {
+                    can.circle(rocket.pos, rocket.exRad); // draw
+                    Rocket.list.splice(l1, 1);
+                    l1--;
+                }
+            };
         }
     }
 
     // debug
-    let v1 = new Vector(1000, 45)
-    let r1 = new Rocket(v1, new Point(100,100), 0);
-    let v2 = new Vector(1000, 250)
-    let r2 = new Rocket(v2, new Point(100,100), 1);
+    let v1 = new Vector(1000, 0)
+    let r1 = new Rocket(v1, new Point(100, 100), 0);
+    let v2 = new Vector(1000, 0)
+    let r2 = new Rocket(v2, new Point(100, 100), 1);
 
     can.tick()
 </script>
