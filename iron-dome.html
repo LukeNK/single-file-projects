@@ -75,6 +75,9 @@
                 toDeg(atan2(y, x))
             );
         }
+        copy() {
+            return new Vector(this.len, this.dir)
+        }
     }
     // rocket properties
     const rockProp = [
@@ -86,6 +89,7 @@
             exRad: 150, // explosion radius
             start: [
                 // new Point(1000, 1000),
+                new Point(500, 3000),
                 new Point(3500, 3000),
                 new Point(3500, 3500),
                 // new Point(1000, 6000),
@@ -137,51 +141,70 @@
                 new Point(9500, 3000),
                 new Point(9500, 1000)
             ],
+            flares: 3, // amount of flare this roject have
             cooldown: 0,
             system: () => {
+                let enemyRock = Rocket.list.filter(r => r.team === 0),
+                    friendRock = Rocket.list.filter(r => r.team === 1);
+
                 if (rockProp[1].cooldown <= 0) {
                     new Rocket(new Vector(random() * 50, random() * 360), 1);
                     rockProp[1].cooldown = 10
                 }
                 rockProp[1].cooldown--
 
-                Rocket.list
-                    .filter(r => r.team === 1)
-                    .forEach(rocket => {
-                        rocket.tar = randomItem(rockProp[0].start)
-                    })
+                friendRock.forEach(rocket => {
+                    rocket.tar = randomItem(rockProp[0].start);
+
+                    // deploy flares
+                    if (!rocket.flares) return; // no flares
+                    let min = Infinity;
+                    for (const erock of enemyRock) {
+                        let dis = Vector.fromPoints(rocket.pos, erock.pos);
+                        if (dis.len < min) min = dis.len;
+                    }
+
+                    if (min < rocket.exRad * 3) {
+                        let v = rocket.vec.copy();
+                        v.len += 200;
+                        v.dir += randomItem([1, -1]) * 50; // separate from the rocket
+                        friendRock.push(new Rocket(v, 1, rocket.pos.copy(), 2))
+                        rocket.flares--
+                    } 
+                });
             }
         },
         {
             // flare rocket
-            maxSpeed: 125,
-            acceleration: 40,
-            turnDeg: 10, 
-            fuel: 5000,
-            exRad: 100,
+            maxSpeed: 20,
+            acceleration: 1,
+            turnDeg: 0, 
+            fuel: 1000,
+            exRad: 10,
         },
     ]
 
     class Rocket {
         static list = [];
-        constructor(vector, team, startIndex, type) {
+        constructor(vector, team, start, type) {
             // which team own this rocket, the index of the start place, and the type index in the array
             if (!((vector instanceof Vector) && (typeof team == 'number')))
                 throw TypeError('Rocket constructor types invalid');
 
             this.vec = vector; this.tar; this.team = team;
-            for (const property in rockProp[type || team]) { // if the type is specified, use type
+            let rocketProperties = rockProp[type || team]; // if the type is specified, use type
+            for (const property in rocketProperties) { 
                 if (property == 'start' || property == 'system') continue;
                 // copy properties
-                const value = rockProp[team][property];
+                const value = rocketProperties[property];
                 this[property] = value;
             }
 
             // chose random start position
-            if (typeof startIndex == 'number')
-                this.pos = rockProp[team].start[startIndex];
-            if (startIndex instanceof Point)
-                this.pos = startIndex;
+            if (typeof start == 'number')
+                this.pos = rockProp[team].start[start];
+            if (start instanceof Point)
+                this.pos = start;
             else
                 this.pos = randomItem(rockProp[team].start).copy();
             
