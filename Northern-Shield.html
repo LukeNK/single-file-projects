@@ -78,6 +78,13 @@
         copy() {
             return new Vector(this.len, this.dir)
         }
+        dirDiff(v2) {
+            // difference dir between two vectors
+            let d = this.dir - v2.dir; // difference between expected place
+            if (abs(d) > 180)
+                d = v2.dir - this.dir
+            return d;
+        }
     }
     // rocket properties
     const rockProp = [
@@ -90,7 +97,7 @@
             exRad: 150, // explosion radius
             start: [
                 new Point(100, 6000),
-                // new Point(100, 3000),
+                new Point(100, 3000),
                 new Point(100, 1000)
             ],
             cooldown: 0, // launch cooldown counter
@@ -124,8 +131,16 @@
                         }
                     }
 
-                    if (0 <= rocket.flares && min <= 1000) {
-                        // if it is a flare carrier and in range
+                    if (
+                        rocket.tar
+                        && 0 <= rocket.flares 
+                        && min <= 1000
+                        && abs(
+                            Vector.fromPoints(rocket.pos, rocket.tar)
+                            .dirDiff(rocket.vec)
+                        ) <= rocket.flareAngle
+                    ) {
+                        // if it is a flare carrier and in range and facing the correct direction
                         let rf = rocket.flares; // copy value
                         // spread the flares
                         for (
@@ -140,7 +155,11 @@
                             agl += (2 * rocket.flareAngle) / rf;
                         }
                         // mark to destroy by setting it reached desination
-                        rocket.destroyed = true;
+                        // don't remove it it is stationary, but refill it instead
+                        if (rocket.maxSpeed != 0) 
+                            rocket.destroyed = true;
+                        else 
+                            rocket.flares = rf
                     }
 
                     let rel = minRock.vec.toPoint(); // convert to relative point for ahead prediction
@@ -221,6 +240,16 @@
             fuel: 2000,
             exRad: 50,
         },
+        {
+            name: "Ground anti-air",
+            maxSpeed: 0,
+            acceleration: 0,
+            turnDeg: 15, 
+            fuel: 10000,
+            exRad: 10,
+            flares: 1,
+            flareAngle: 1, // flare angle of ONE SIDE
+        },
     ]
 
     class Rocket {
@@ -274,10 +303,7 @@
             this.vec.len = min(this.vec.len, this.maxSpeed)
 
             // direction
-            d = dis.dir - this.vec.dir; // difference between expected place
-            if (abs(d) > 180) {
-                d = (this.vec.dir - dis.dir)
-            }
+            d = dis.dirDiff(this.vec)
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
         }
         destroy() {            
@@ -375,7 +401,10 @@
         }
     }
 
-    // debug
+    // ground defense
+    new Rocket(new Vector(1, 1), 0, new Point(1500, 3500), 5);
+
+    // first rocket
     new Rocket(new Vector(random() * 50, random() * 360), 1);
 
     let sim = setInterval(() => {
