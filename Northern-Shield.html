@@ -171,7 +171,7 @@
                     let rel = minRock.vec.copy(); // convert to relative point for ahead prediction
                     if (!rocket.maxSpeed)
                         // if guns then displace the bulet speed
-                        rel.len += 300; 
+                        rel.len += 1000; 
                     rel = rel.toPoint();
                     rocket.tar = minRock.pos.copy();
                     rocket.tar.x += rel.x;
@@ -255,7 +255,7 @@
             uncontrol: true
         },
         {
-            name: "Ground anti-air",
+            name: "Ground flare-trigger",
             maxSpeed: 0,
             acceleration: 0,
             turnDeg: 30, 
@@ -266,12 +266,12 @@
             shell: 6,
         },
         {
-            name: "Anti-air bullet",
+            name: "Flare-trigger bullet",
             maxSpeed: 200,
             acceleration: 1000,
             turnDeg: 0, 
             fuel: 5000,
-            exRad: 10,
+            exRad: 20,
             uncontrol: true
         },
     ]
@@ -330,8 +330,9 @@
             d = dis.dirDiff(this.vec)
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
         }
-        destroy() {            
-            this.destroyed = true;
+        destroy() {
+            // don't destroy guns
+            if (this.maxSpeed) this.destroyed = true;
 
             for (const rocket of Rocket.list) {
                 if (rocket.destroyed == true) continue; // the rocket was triggered
@@ -429,7 +430,8 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, 1), 0, new Point(1500, 3500), 5);
+    new Rocket(new Vector(1, 1), 0, new Point(5000, 5000), 5);
+    new Rocket(new Vector(1, 1), 0, new Point(5000, 1000), 5);
 
     // first rocket
     new Rocket(new Vector(random() * 50, random() * 360), 1);
