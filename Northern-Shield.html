@@ -335,7 +335,7 @@
             if (this.maxSpeed) this.destroyed = true;
 
             for (const rocket of Rocket.list) {
-                if (rocket.destroyed == true) continue; // the rocket was triggered
+                if (rocket.destroyed == true || !this.maxSpeed) continue; // the rocket was triggered
                 let dis = Vector.fromPoints(this.pos, rocket.pos);
                 if (this.exRad < dis.len) continue; // out of explosion radius
                 rocket.destroy(rocket);
