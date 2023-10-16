@@ -58,7 +58,7 @@
             this.len = length;
             this.dir = direction;
         }
-        toPoints() {
+        toPoint() {
             // convert to the next relative points
             // cos theta = (x/l)
             let dir = this.dir, len = this.len;
@@ -85,34 +85,45 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(1000, 1000),
+                // new Point(1000, 1000),
                 new Point(3500, 3000),
+                new Point(3500, 3500),
+                // new Point(1000, 6000),
             ],
             cooldown: 0, // launch cooldown counter
-            alt: 2, // alternative start
+            alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
                     
-                if (rockProp[0].cooldown <= 0
-                    && friendRock.length < enemyRock.length) {
-                    new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length);
+                if (
+                    rockProp[0].cooldown <= 0
+                    && friendRock.length < enemyRock.length
+                ) {
+                    // update list for the target system
+                    friendRock.push(new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length));
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 8;
                 }
                 rockProp[0].cooldown--;
 
                 friendRock.forEach(rocket => {
-                        let min = Infinity, minRock;
-                        for (const erock of enemyRock) {
-                            let dis = Vector.fromPoints(rocket.pos, erock.pos);
-                            if (dis.len < min) {
-                                min = dis.len;
-                                minRock = erock.pos;
-                            }
+                    let min = Infinity, minRock;
+                    for (const erock of enemyRock) {
+                        let dis = Vector.fromPoints(rocket.pos, erock.pos);
+                        if (
+                            dis.len < min
+                        ) {
+                            min = dis.len;
+                            minRock = erock;
                         }
-                        rocket.tar = minRock.copy();
-                    });
+                    }
+
+                    let rel = minRock.vec.toPoint(); // convert to relative point for ahead prediction
+                    rocket.tar = minRock.pos.copy();
+                    rocket.tar.x += rel.x;
+                    rocket.tar.y += rel.y;
+                });
             }
         },
         {
@@ -123,6 +134,7 @@
             exRad: 500,
             start: [
                 new Point(9500, 6000),
+                new Point(9500, 3000),
                 new Point(9500, 1000)
             ],
             cooldown: 0,
@@ -139,18 +151,26 @@
                         rocket.tar = randomItem(rockProp[0].start)
                     })
             }
-        }
+        },
+        {
+            // flare rocket
+            maxSpeed: 125,
+            acceleration: 40,
+            turnDeg: 10, 
+            fuel: 5000,
+            exRad: 100,
+        },
     ]
 
     class Rocket {
         static list = [];
-        constructor(vector, team, startIndex) {
-            // which team own this rocket, and the index of the start place
+        constructor(vector, team, startIndex, type) {
+            // which team own this rocket, the index of the start place, and the type index in the array
             if (!((vector instanceof Vector) && (typeof team == 'number')))
                 throw TypeError('Rocket constructor types invalid');
 
             this.vec = vector; this.tar; this.team = team;
-            for (const property in rockProp[team]) {
+            for (const property in rockProp[type || team]) { // if the type is specified, use type
                 if (property == 'start' || property == 'system') continue;
                 // copy properties
                 const value = rockProp[team][property];
@@ -160,6 +180,8 @@
             // chose random start position
             if (typeof startIndex == 'number')
                 this.pos = rockProp[team].start[startIndex];
+            if (startIndex instanceof Point)
+                this.pos = startIndex;
             else
                 this.pos = randomItem(rockProp[team].start).copy();
             
@@ -168,7 +190,7 @@
         getNextPoint() {
             // get the next point with absolute coord
             let x = this.pos.x, y = this.pos.y,
-                rel = this.vec.toPoints();
+                rel = this.vec.toPoint();
             return new Point(x + rel.x, y + rel.y)
         }
         tickMove() {
@@ -289,8 +311,16 @@
     }
 
     // debug
-
-
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 1);
     new Rocket(new Vector(random() * 50, random() * 360), 1);
     new Rocket(new Vector(random() * 50, random() * 360), 1);
     new Rocket(new Vector(random() * 50, random() * 360), 1);
