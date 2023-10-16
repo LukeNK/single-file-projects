@@ -307,7 +307,7 @@
             maxSpeed: 50,
             acceleration: 50,
             turnDeg: 1, 
-            fuel: 3000,
+            fuel: 3500,
             exRad: 50,
             uncontrol: true
         },
@@ -315,6 +315,7 @@
 
     class Rocket {
         static list = [];
+        static count = [0, 0]; // count the number of rockets created
         constructor(vector, team, start, type) {
             // which team own this rocket, the index of the start place, and the type index in the array
             if (!((vector instanceof Vector) && (typeof team == 'number')))
@@ -338,6 +339,7 @@
             else
                 this.pos = randomItem(rockProp[team].start).copy();
             
+            Rocket.count[team]++ // gather statistic
             Rocket.list.push(this);
         }
         getNextPoint() {
