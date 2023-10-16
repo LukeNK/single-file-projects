@@ -6,7 +6,7 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas" height="700" width="1000"></canvas>
+    <canvas id="canvas" height="700" width="1100"></canvas>
 </body>
 <script>
     // constants
@@ -88,11 +88,9 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                // new Point(1000, 1000),
-                new Point(500, 3000),
-                new Point(3500, 3000),
-                new Point(3500, 3500),
-                // new Point(1000, 6000),
+                new Point(100, 6000),
+                new Point(100, 3000),
+                new Point(100, 1000)
             ],
             cooldown: 0, // launch cooldown counter
             alt: 100, // alternative start, set high to it always work with mod
@@ -105,7 +103,7 @@
                     && friendRock.length < enemyRock.length
                 ) {
                     // update list for the target system
-                    friendRock.push(new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length));
+                    new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length);
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 8;
                 }
@@ -137,9 +135,9 @@
             fuel: 50000,
             exRad: 500,
             start: [
-                new Point(9500, 6000),
-                new Point(9500, 3000),
-                new Point(9500, 1000)
+                new Point(10000, 6000),
+                new Point(10000, 3000),
+                new Point(10000, 1000)
             ],
             flares: 3, // amount of flare this roject have
             cooldown: 0,
@@ -220,24 +218,24 @@
             this.pos = this.getNextPoint(); // go to next point
             this.fuel -= this.vec.len; // reduce fuel
 
+            // check if the rocket was assigned with a target or not
+            if (!this.tar) return;
+
             // is in the explosion range, using Vector.fromPoint() to calculate the distance
             let dis = Vector.fromPoints(this.pos, this.tar);
             if (dis.len <= this.exRad || this.fuel <= 0)
                 return this.destroy(this);
 
-            // calculate next route using commander of each team (aka turn to the target)             
-            let tarVec = Vector.fromPoints(this.pos, this.tar); // use vector to get expected route
-
             // speed stuff
-            let d = tarVec.len - this.vec.len;
+            let d = dis.len - this.vec.len;
             d = (d < 0)? max(d, -this.acceleration) : min(d, this.acceleration);
             this.vec.len += d;
             this.vec.len = min(this.vec.len, this.maxSpeed)
 
             // direction
-            d = tarVec.dir - this.vec.dir; // difference between expected place
+            d = dis.dir - this.vec.dir; // difference between expected place
             if (abs(d) > 180) {
-                d = (this.vec.dir - tarVec.dir)
+                d = (this.vec.dir - dis.dir)
             }
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
         }
@@ -302,7 +300,7 @@
             ctx.stroke();
         },
         tick: () => {
-            ctx.rect(0, 0, 10000, 10000);
+            ctx.rect(0, 0, 20000, 20000);
             ctx.fill();
 
             rockProp[0].system();
@@ -317,7 +315,10 @@
 
                     can.line(rocket.pos, p0, 'e'); // trail
                     can.line(rocket.pos, p2, 'r');
-                    can.line(rocket.pos, rocket.tar, rocket.team);
+
+                    // only draw if there is target
+                    if (rocket.tar)
+                        can.line(rocket.pos, rocket.tar, rocket.team);
                 }
 
                 if (rocket.destroyed == true) {
@@ -335,27 +336,10 @@
 
     // debug
     new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
 
     let sim = setInterval(() => {
         can.tick();
         if (Rocket.list.filter(r => r.team === 1).length <= 0) clearInterval(sim);
     }, 100);
-    // setInterval(() => {
-    //     new Rocket(new Vector(1000, 90), new Point(0, 0), 0)
-    // }, 1000);
     can.tick()
 </script>
