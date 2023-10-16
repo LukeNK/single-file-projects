@@ -82,6 +82,7 @@
     // rocket properties
     const rockProp = [
         {
+            name: "Northern Shield standard interceptor", // just a name
             maxSpeed: 100, // pixels per tick
             acceleration: 100, // MAX pixel per tick quare
             turnDeg: 7, // turn degree per tick
@@ -89,7 +90,7 @@
             exRad: 150, // explosion radius
             start: [
                 new Point(100, 6000),
-                new Point(100, 3000),
+                // new Point(100, 3000),
                 new Point(100, 1000)
             ],
             cooldown: 0, // launch cooldown counter
@@ -102,8 +103,12 @@
                     rockProp[0].cooldown <= 0
                     && friendRock.length < enemyRock.length
                 ) {
-                    // update list for the target system
-                    new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length);
+                    new Rocket(
+                        new Vector(0, 0), 
+                        0, 
+                        rockProp[0].alt % rockProp[0].start.length,
+                        randomItem([0, 0, 3]) // spawm bias setting
+                    );
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 8;
                 }
@@ -113,12 +118,29 @@
                     let min = Infinity, minRock;
                     for (const erock of enemyRock) {
                         let dis = Vector.fromPoints(rocket.pos, erock.pos);
-                        if (
-                            dis.len < min
-                        ) {
+                        if (dis.len < min) {
                             min = dis.len;
                             minRock = erock;
                         }
+                    }
+
+                    if (0 <= rocket.flares && min <= 1000) {
+                        // if it is a flare carrier and in range
+                        let rf = rocket.flares; // copy value
+                        // spread the flares
+                        for (
+                            let agl = -rocket.flareAngle;
+                            rocket.flares > 0;
+                            rocket.flares--
+                        ) {
+                            let v = rocket.vec.copy();
+                            v.len += 200;
+                            v.dir += agl; // separate from the rocket
+                            new Rocket(v, 0, rocket.pos.copy(), 4);
+                            agl += (2 * rocket.flareAngle) / rf;
+                        }
+                        // mark to destroy by setting it reached desination
+                        rocket.destroyed = true;
                     }
 
                     let rel = minRock.vec.toPoint(); // convert to relative point for ahead prediction
@@ -129,6 +151,7 @@
             }
         },
         {
+            name: "Ironu 1", // just a name
             maxSpeed: 75,
             acceleration: 10,
             turnDeg: 5, 
@@ -166,19 +189,37 @@
                         let v = rocket.vec.copy();
                         v.len += 200;
                         v.dir += randomItem([1, -1]) * 50; // separate from the rocket
-                        friendRock.push(new Rocket(v, 1, rocket.pos.copy(), 2))
+                        new Rocket(v, 1, rocket.pos.copy(), 2)
                         rocket.flares--
                     } 
                 });
             }
         },
         {
-            // flare rocket
+            name: "Flare",
             maxSpeed: 20,
             acceleration: 1,
             turnDeg: 0, 
             fuel: 1000,
             exRad: 10,
+        },
+        {
+            name: "Northern Shield's shot carrier",
+            maxSpeed: 125,
+            acceleration: 20,
+            turnDeg: 15, 
+            fuel: 10000,
+            exRad: 10,
+            flares: 9,
+            flareAngle: 20, // flare angle of ONE SIDE
+        },
+        {
+            name: "shot",
+            maxSpeed: 40,
+            acceleration: 0,
+            turnDeg: 0, 
+            fuel: 2000,
+            exRad: 50,
         },
     ]
 
