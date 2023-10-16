@@ -101,11 +101,33 @@
                 new Point(100, 1000)
             ],
             cooldown: 0, // launch cooldown counter
+            cityCooldown: 0, // city anti-air cooldown
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
                     
+                // city-protect bullets
+                if (rockProp[0].cityCooldown <= 0) for (const start of rockProp[0].start) {
+                    // get min
+                    let min = Infinity, item;
+                    for (const erock of enemyRock) {
+                        let dis = Vector.fromPoints(start, erock.pos);
+                        if (dis.len < min) {
+                            min = dis.len;
+                            item = erock;
+                        }
+                    }
+
+                    // check if min is in range
+                    if (rockProp[7].fuel < min) continue;
+                    let dis = Vector.fromPoints(start, item.pos);
+                    dis.len = 0;
+                    new Rocket(dis, 0, start, 7);
+                    rockProp[0].cityCooldown = 5
+                }
+                rockProp[0].cityCooldown--
+                
                 // count the number of uncontroled rockets
                 if (
                     rockProp[0].cooldown <= 0
@@ -115,7 +137,7 @@
                         new Vector(0, 0), 
                         0, 
                         rockProp[0].alt % rockProp[0].start.length,
-                        randomItem([0, 0, 3, 3, 7]) // spawm bias setting
+                        randomItem([0, 0, 3]) // spawm bias setting
                     );
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 8;
@@ -192,9 +214,9 @@
             fuel: 50000,
             exRad: 500,
             start: [
-                new Point(10000, 6000),
-                new Point(10000, 3000),
-                new Point(10000, 1000)
+                new Point(11000, 6000),
+                new Point(11000, 3000),
+                new Point(11000, 1000)
             ],
             flares: 3, // amount of flare this roject have
             shell: 2,
@@ -284,8 +306,8 @@
             name: "Self-adjust bullet",
             maxSpeed: 50,
             acceleration: 50,
-            turnDeg: 2, 
-            fuel: 5000,
+            turnDeg: 1, 
+            fuel: 3000,
             exRad: 50,
             uncontrol: true
         },
