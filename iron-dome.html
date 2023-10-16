@@ -88,13 +88,19 @@
                 new Point(1000, 1000),
                 new Point(3500, 3000),
             ],
+            cooldown: 0, // launch cooldown counter
+            alt: 2, // alternative start
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
-
                     
-                if (friendRock.length < enemyRock.length)
-                    new Rocket(new Vector(250, random() * 360), 0);
+                if (rockProp[0].cooldown <= 0
+                    && friendRock.length < enemyRock.length) {
+                    new Rocket(new Vector(0, 0), 0, rockProp[0].alt % rockProp[0].start.length);
+                    rockProp[0].alt++;
+                    rockProp[0].cooldown = 8;
+                }
+                rockProp[0].cooldown--;
 
                 friendRock.forEach(rocket => {
                         let min = Infinity, minRock;
@@ -116,10 +122,17 @@
             fuel: 50000,
             exRad: 500,
             start: [
-                new Point(6000, 6000),
-                new Point(6000, 1000)
+                new Point(9500, 6000),
+                new Point(9500, 1000)
             ],
+            cooldown: 0,
             system: () => {
+                if (rockProp[1].cooldown <= 0) {
+                    new Rocket(new Vector(random() * 50, random() * 360), 1);
+                    rockProp[1].cooldown = 10
+                }
+                rockProp[1].cooldown--
+
                 Rocket.list
                     .filter(r => r.team === 1)
                     .forEach(rocket => {
@@ -131,8 +144,8 @@
 
     class Rocket {
         static list = [];
-        constructor(vector, team) {
-            // which team own this rocket
+        constructor(vector, team, startIndex) {
+            // which team own this rocket, and the index of the start place
             if (!((vector instanceof Vector) && (typeof team == 'number')))
                 throw TypeError('Rocket constructor types invalid');
 
@@ -145,7 +158,10 @@
             }
 
             // chose random start position
-            this.pos = randomItem(rockProp[team].start).copy();
+            if (typeof startIndex == 'number')
+                this.pos = rockProp[team].start[startIndex];
+            else
+                this.pos = randomItem(rockProp[team].start).copy();
             
             Rocket.list.push(this);
         }
@@ -210,7 +226,7 @@
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 10;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
@@ -249,13 +265,15 @@
 
             for (let l1 = 0; l1 < Rocket.list.length; l1++) {
                 let rocket = Rocket.list[l1];
-                let p0 = rocket.pos.copy();
-                rocket.tickMove();
-                let p2 = rocket.getNextPoint();
+                if (rocket.destroyed != true) {
+                    let p0 = rocket.pos.copy();
+                    rocket.tickMove();
+                    let p2 = rocket.getNextPoint();
 
-                can.line(rocket.pos, p0, 'e'); // trail
-                can.line(rocket.pos, p2, 'r');
-                can.line(rocket.pos, rocket.tar, rocket.team);
+                    can.line(rocket.pos, p0, 'e'); // trail
+                    can.line(rocket.pos, p2, 'r');
+                    can.line(rocket.pos, rocket.tar, rocket.team);
+                }
 
                 if (rocket.destroyed == true) {
                     can.circle(rocket.pos, rocket.exRad); // draw
@@ -264,7 +282,7 @@
                 }
 
                 // draw start places
-                [...rockProp[0].start, ...rockProp[0].start]
+                [...rockProp[0].start, ...rockProp[1].start]
                     .forEach(p => can.circle(p, 50, 's'))
             };
         }
@@ -278,26 +296,6 @@
     new Rocket(new Vector(random() * 50, random() * 360), 1);
     new Rocket(new Vector(random() * 50, random() * 360), 1);
     new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
-
 
     let sim = setInterval(() => {
         can.tick();
