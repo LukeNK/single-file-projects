@@ -100,7 +100,7 @@
                 new Point(100, 3000),
                 new Point(100, 1000)
             ],
-            cooldown: 0, // launch cooldown counter
+            cooldown: 50, // launch cooldown counter, set to add delay
             cityCooldown: 0, // city anti-air cooldown
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
@@ -140,7 +140,7 @@
                         randomItem([0, 0, 3]) // spawm bias setting
                     );
                     rockProp[0].alt++;
-                    rockProp[0].cooldown = 8;
+                    rockProp[0].cooldown = 7;
                 }
                 rockProp[0].cooldown--;
 
@@ -468,8 +468,7 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, 1), 0, new Point(5000, 5000), 5);
-    new Rocket(new Vector(1, 1), 0, new Point(5000, 1000), 5);
+    new Rocket(new Vector(1, 1), 0, new Point(2000, 3500), 5);
 
     // first rocket
     new Rocket(new Vector(random() * 50, random() * 360), 1);
