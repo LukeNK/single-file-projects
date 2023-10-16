@@ -106,9 +106,10 @@
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
                     
+                // count the number of uncontroled rockets
                 if (
                     rockProp[0].cooldown <= 0
-                    && friendRock.length < enemyRock.length
+                    && friendRock.filter(r => !r.uncontrol).length < enemyRock.length
                 ) {
                     new Rocket(
                         new Vector(0, 0), 
@@ -134,7 +135,7 @@
                     if (
                         rocket.tar
                         && 0 <= rocket.flares 
-                        && min <= 1000
+                        && min <= rocket.exRad * 100
                         && abs(
                             Vector.fromPoints(rocket.pos, rocket.tar)
                             .dirDiff(rocket.vec)
@@ -151,7 +152,12 @@
                             let v = rocket.vec.copy();
                             v.len += 200;
                             v.dir += agl; // separate from the rocket
-                            new Rocket(v, 0, rocket.pos.copy(), 4);
+                            new Rocket(
+                                v, 
+                                0, 
+                                rocket.pos.copy(), 
+                                rocket.shell
+                            );
                             agl += (2 * rocket.flareAngle) / rf;
                         }
                         // mark to destroy by setting it reached desination
@@ -162,7 +168,11 @@
                             rocket.flares = rf
                     }
 
-                    let rel = minRock.vec.toPoint(); // convert to relative point for ahead prediction
+                    let rel = minRock.vec.copy(); // convert to relative point for ahead prediction
+                    if (!rocket.maxSpeed)
+                        // if guns then displace the bulet speed
+                        rel.len += 300; 
+                    rel = rel.toPoint();
                     rocket.tar = minRock.pos.copy();
                     rocket.tar.x += rel.x;
                     rocket.tar.y += rel.y;
@@ -182,6 +192,7 @@
                 new Point(10000, 1000)
             ],
             flares: 3, // amount of flare this roject have
+            shell: 2,
             cooldown: 0,
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 0),
@@ -208,7 +219,7 @@
                         let v = rocket.vec.copy();
                         v.len += 200;
                         v.dir += randomItem([1, -1]) * 50; // separate from the rocket
-                        new Rocket(v, 1, rocket.pos.copy(), 2)
+                        new Rocket(v, 1, rocket.pos.copy(), rocket.shell)
                         rocket.flares--
                     } 
                 });
@@ -221,6 +232,7 @@
             turnDeg: 0, 
             fuel: 1000,
             exRad: 10,
+            uncontrol: true
         },
         {
             name: "Northern Shield's shot carrier",
@@ -231,6 +243,7 @@
             exRad: 10,
             flares: 9,
             flareAngle: 20, // flare angle of ONE SIDE
+            shell: 4, // the shell index that got separate out
         },
         {
             name: "shot",
@@ -239,16 +252,27 @@
             turnDeg: 0, 
             fuel: 2000,
             exRad: 50,
+            uncontrol: true
         },
         {
             name: "Ground anti-air",
             maxSpeed: 0,
             acceleration: 0,
-            turnDeg: 15, 
+            turnDeg: 30, 
             fuel: 10000,
-            exRad: 10,
+            exRad: 50,
             flares: 1,
-            flareAngle: 1, // flare angle of ONE SIDE
+            flareAngle: 1,
+            shell: 6,
+        },
+        {
+            name: "Anti-air bullet",
+            maxSpeed: 200,
+            acceleration: 1000,
+            turnDeg: 0, 
+            fuel: 5000,
+            exRad: 10,
+            uncontrol: true
         },
     ]
 
@@ -381,10 +405,13 @@
                     let p2 = rocket.getNextPoint();
 
                     can.line(rocket.pos, p0, 'e'); // trail
-                    can.line(rocket.pos, p2, 'r');
+                    if (rocket.uncontrol) 
+                        can.circle(rocket.pos, rocket.exRad / 2, 'e')
+                    else
+                        can.line(rocket.pos, p2, 'r');
 
                     // only draw if there is target
-                    if (rocket.tar)
+                    if (rocket.tar && !rocket.uncontrol)
                         can.line(rocket.pos, rocket.tar, rocket.team);
                 }
 
