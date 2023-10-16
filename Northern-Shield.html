@@ -219,6 +219,8 @@
                 new Point(11000, 1000)
             ],
             flares: 3, // amount of flare this roject have
+            flareAngle: 50,
+            flareTrigger: 3000,
             shell: 2,
             cooldown: 0,
             system: () => {
@@ -226,7 +228,11 @@
                     friendRock = Rocket.list.filter(r => r.team === 1);
 
                 if (rockProp[1].cooldown <= 0) {
-                    new Rocket(new Vector(random() * 50, random() * 360), 1);
+                    new Rocket(
+                        new Vector(random() * 50, random() * 360),
+                        1,
+                        0,
+                        randomItem([1, 1, 1, 1, 1, 1, 8]));
                     rockProp[1].cooldown = 10
                 }
                 rockProp[1].cooldown--
@@ -242,10 +248,10 @@
                         if (dis.len < min) min = dis.len;
                     }
 
-                    if (min < rocket.exRad * 3) {
+                    if (min < rocket.flareTrigger) {
                         let v = rocket.vec.copy();
                         v.len += 200;
-                        v.dir += randomItem([1, -1]) * 50; // separate from the rocket
+                        v.dir += randomItem([1, -1]) * rocket.flareAngle; // separate from the rocket
                         new Rocket(v, 1, rocket.pos.copy(), rocket.shell)
                         rocket.flares--
                     } 
@@ -310,6 +316,18 @@
             fuel: 3500,
             exRad: 50,
             uncontrol: true
+        },
+        {
+            name: "Ironu 2 - Cartographer",
+            maxSpeed: 125,
+            acceleration: 20,
+            turnDeg: 5,
+            fuel: 15000,
+            exRad: 50,
+            flares: 70,
+            flareAngle: 30,
+            flareTrigger: 3000,
+            shell: 2, // the shell index that got separate out
         },
     ]
 
