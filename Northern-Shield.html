@@ -96,9 +96,8 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(100, 6000),
-                new Point(100, 3000),
-                new Point(100, 1000)
+                new Point(1000, 6500),
+                new Point(500, 6500),
             ],
             cooldown: 50, // launch cooldown counter, set to add delay
             cityCooldown: 0, // city anti-air cooldown
@@ -214,9 +213,8 @@
             fuel: 50000,
             exRad: 500,
             start: [
-                new Point(11000, 6000),
-                new Point(11000, 3000),
-                new Point(11000, 1000)
+                new Point(11000, 0),
+                new Point(11000, 1000),
             ],
             flares: 3, // amount of flare this roject have
             flareAngle: 50,
@@ -488,7 +486,7 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, 1), 0, new Point(2000, 3500), 5);
+    new Rocket(new Vector(1, 1), 0, new Point(2000, 6500), 5);
 
     // first rocket
     new Rocket(new Vector(random() * 50, random() * 360), 1);
