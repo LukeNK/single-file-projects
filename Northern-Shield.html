@@ -115,7 +115,7 @@
                         new Vector(0, 0), 
                         0, 
                         rockProp[0].alt % rockProp[0].start.length,
-                        randomItem([0, 0, 3]) // spawm bias setting
+                        randomItem([0, 0, 3, 3, 7]) // spawm bias setting
                     );
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 8;
@@ -136,6 +136,7 @@
                         rocket.tar
                         && 0 <= rocket.flares 
                         && min <= rocket.exRad * 100
+                        && ((rocket?.cooldown)? rocket.cooldown < 0 : true) // if there is a cooldown
                         && abs(
                             Vector.fromPoints(rocket.pos, rocket.tar)
                             .dirDiff(rocket.vec)
@@ -162,16 +163,20 @@
                         }
                         // mark to destroy by setting it reached desination
                         // don't remove it it is stationary, but refill it instead
-                        if (rocket.maxSpeed != 0) 
+                        if (rocket.maxSpeed != 0) { 
                             rocket.destroyed = true;
-                        else 
-                            rocket.flares = rf
+                        } else {
+                            rocket.cooldown = rocket.fireRate;
+                            rocket.flares = rf;
+                        }
                     }
 
                     let rel = minRock.vec.copy(); // convert to relative point for ahead prediction
-                    if (!rocket.maxSpeed)
+                    if (!rocket.maxSpeed) {
                         // if guns then displace the bulet speed
-                        rel.len += 1000; 
+                        rel.len += 1000;
+                        rocket.cooldown--;
+                    }
                     rel = rel.toPoint();
                     rocket.tar = minRock.pos.copy();
                     rocket.tar.x += rel.x;
@@ -264,6 +269,7 @@
             flares: 1,
             flareAngle: 1,
             shell: 6,
+            fireRate: 10, // how many frame before fire
         },
         {
             name: "Flare-trigger bullet",
@@ -272,6 +278,15 @@
             turnDeg: 0, 
             fuel: 5000,
             exRad: 20,
+            uncontrol: true
+        },
+        {
+            name: "Self-adjust bullet",
+            maxSpeed: 50,
+            acceleration: 50,
+            turnDeg: 2, 
+            fuel: 5000,
+            exRad: 50,
             uncontrol: true
         },
     ]
@@ -287,6 +302,7 @@
             let rocketProperties = rockProp[type || team]; // if the type is specified, use type
             for (const property in rocketProperties) { 
                 if (property == 'start' || property == 'system') continue;
+                if (property == 'fireRate') this.cooldown = 0;
                 // copy properties
                 const value = rocketProperties[property];
                 this[property] = value;
