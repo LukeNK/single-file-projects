@@ -233,11 +233,25 @@
                 rockProp[1].cooldown--
 
                 friendRock.forEach(rocket => {
-                    rocket.tar = randomItem(rockProp[0].start);
+                    // find the closest target
+                    let min = Infinity, item;
+                    for (const target of rockProp[0].start) {
+                        let dis = Vector.fromPoints(rocket.pos, target);
+                        if (dis.len < min) {
+                            min = dis.len;
+                            item = target;
+                        }
+                    }
+
+                    // check if within strike distance
+                    if (min < rocket.exRad)
+                        rocket.tar = item;
+                    else
+                        rocket.tar = randomItem(rockProp[0].start);
 
                     // deploy flares
                     if (!rocket.flares) return; // no flares
-                    let min = Infinity;
+                    min = Infinity;
                     for (const erock of enemyRock) {
                         let dis = Vector.fromPoints(rocket.pos, erock.pos);
                         if (dis.len < min) min = dis.len;
@@ -414,7 +428,7 @@
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 10;
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
