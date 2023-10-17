@@ -286,10 +286,10 @@
             uncontrol: true
         },
         {
-            name: "Ground flare-trigger",
+            name: "Static ground flare-trigger",
             maxSpeed: 0,
             acceleration: 0,
-            turnDeg: 30, 
+            turnDeg: 0, 
             fuel: 10000,
             exRad: 50,
             flares: 1,
@@ -299,10 +299,10 @@
         },
         {
             name: "Flare-trigger bullet",
-            maxSpeed: 200,
+            maxSpeed: 170,
             acceleration: 1000,
             turnDeg: 0, 
-            fuel: 5000,
+            fuel: 6000,
             exRad: 20,
             uncontrol: true
         },
@@ -486,7 +486,7 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, 1), 0, new Point(2000, 6500), 5);
+    new Rocket(new Vector(1, 320), 0, new Point(2000, 6500), 5);
 
     // first rocket
     new Rocket(new Vector(random() * 50, random() * 360), 1);
