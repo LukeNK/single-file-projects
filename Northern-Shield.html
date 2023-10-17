@@ -158,16 +158,13 @@
                         && 0 <= rocket.flares 
                         && min <= rocket.exRad * 100
                         && ((rocket?.cooldown)? rocket.cooldown < 0 : true) // if there is a cooldown
-                        && abs(
-                            Vector.fromPoints(rocket.pos, rocket.tar)
-                            .dirDiff(rocket.vec)
-                        ) <= rocket.flareAngle
+                        && abs(Vector.fromPoints(rocket.pos, rocket.tar).dirDiff(rocket.vec) <= rocket.flareAngle)
                     ) {
                         // if it is a flare carrier and in range and facing the correct direction
                         let rf = rocket.flares; // copy value
                         // spread the flares
                         for (
-                            let agl = -rocket.flareAngle;
+                            let agl = (rocket.flares == 1)? 0 : -rocket.flareAngle; // shoot straight with 1 flare
                             rocket.flares > 0;
                             rocket.flares--
                         ) {
@@ -180,7 +177,7 @@
                                 rocket.pos.copy(), 
                                 rocket.shell
                             );
-                            agl += (2 * rocket.flareAngle) / rf;
+                            agl += (2 * rocket.flareAngle) / max(rf - 1, 1); // 
                         }
                         // mark to destroy by setting it reached desination
                         // don't remove it it is stationary, but refill it instead
@@ -195,7 +192,7 @@
                     let rel = minRock.vec.copy(); // convert to relative point for ahead prediction
                     if (!rocket.maxSpeed) {
                         // if guns then displace the bulet speed
-                        rel.len += 1000;
+                        // rel.len += 1000;
                         rocket.cooldown--;
                     }
                     rel = rel.toPoint();
@@ -293,9 +290,9 @@
             fuel: 10000,
             exRad: 50,
             flares: 1,
-            flareAngle: 1,
+            flareAngle: 15,
             shell: 6,
-            fireRate: 10, // how many frame before fire
+            fireRate: 20, // how many frame before fire
         },
         {
             name: "Flare-trigger bullet",
@@ -417,7 +414,7 @@
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 10;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
@@ -486,8 +483,8 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, +30), 0, new Point(500, 0), 5);
-    new Rocket(new Vector(1, -30), 0, new Point(500, 7000), 5);
+    new Rocket(new Vector(1, +20), 0, new Point(1500, 4000), 5);
+    new Rocket(new Vector(1, -20), 0, new Point(1500, 3000), 5);
 
 
     // first rocket
