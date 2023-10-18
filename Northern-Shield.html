@@ -206,7 +206,7 @@
                     new Rocket(
                         new Vector(random() * 50, random() * 360),
                         1,
-                        0,
+                        randomItem([...rockProp[1].start]),
                         randomItem([1, 1, 1, 1, 1, 1, 8]));
                     rockProp[1].cooldown = 10
                 }
