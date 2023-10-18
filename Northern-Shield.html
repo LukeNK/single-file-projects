@@ -101,32 +101,10 @@
                 new Point(1500, 6500),
             ],
             cooldown: 0, // launch cooldown counter, set to add delay
-            cityCooldown: 0, // city anti-air cooldown
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
-                    
-                // city-protect bullets
-                if (rockProp[0].cityCooldown <= 0) for (const start of rockProp[0].start) {
-                    // get min
-                    let min = Infinity, item;
-                    for (const erock of enemyRock) {
-                        let dis = Vector.fromPoints(start, erock.pos);
-                        if (dis.len < min) {
-                            min = dis.len;
-                            item = erock;
-                        }
-                    }
-
-                    // check if min is in range
-                    if (rockProp[7].fuel < min) continue;
-                    let dis = Vector.fromPoints(start, item.pos);
-                    dis.len = 0;
-                    new Rocket(dis, 0, start, 7);
-                    rockProp[0].cityCooldown = 5
-                }
-                rockProp[0].cityCooldown--
                 
                 // count the number of uncontroled rockets
                 if (
@@ -157,7 +135,7 @@
                     if (
                         rocket.tar
                         && 0 <= rocket.flares 
-                        && min <= rocket.exRad * 100
+                        && min <= rocket.flareTrigger
                         && ((rocket?.cooldown)? rocket.cooldown < 0 : true) // if there is a cooldown
                         && abs(Vector.fromPoints(rocket.pos, rocket.tar).dirDiff(rocket.vec) <= rocket.flareAngle)
                     ) {
@@ -287,6 +265,7 @@
             exRad: 10,
             flares: 9,
             flareAngle: 20, // flare angle of ONE SIDE
+            flareTrigger: 1000,
             shell: 4, // the shell index that got separate out
         },
         {
@@ -347,6 +326,19 @@
             turnDeg: 45, // turn degree per tick, essentially AOA limiter
             fuel: 7000, // how many pixels before out of fuel
             exRad: 75, // explosion radius
+        },
+        {
+            name: "City anti-air",
+            maxSpeed: 0,
+            acceleration: 20,
+            turnDeg: 5,
+            fuel: 15000,
+            exRad: 50,
+            flares: 1,
+            flareAngle: 10,
+            flareTrigger: 3250, // lower range because the bullet turn
+            shell: 7,
+            fireRate: 5,
         },
     ]
 
@@ -509,6 +501,7 @@
     // ground defense
     new Rocket(new Vector(1, -20), 0, new Point(1500, 6500), 5);
     new Rocket(new Vector(1, +20), 0, new Point(1500, 500), 5);
+    new Rocket(new Vector(1, +20), 0, new Point(1500, 3500), 10);
 
 
     // first rocket
