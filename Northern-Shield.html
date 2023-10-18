@@ -6,7 +6,7 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas" height="700" width="1100"></canvas>
+    <canvas id="canvas" height="700" width="1200"></canvas>
 </body>
 <script>
     // constants
@@ -96,8 +96,9 @@
             fuel: 10000, // how many pixels before out of fuel
             exRad: 150, // explosion radius
             start: [
-                new Point(500, 500),
-                new Point(500, 6500),
+                new Point(1500, 500),
+                new Point(1500, 3500),
+                new Point(1500, 6500),
             ],
             cooldown: 0, // launch cooldown counter, set to add delay
             cityCooldown: 0, // city anti-air cooldown
@@ -210,8 +211,9 @@
             fuel: 50000,
             exRad: 300,
             start: [
-                new Point(10500, 500),
-                new Point(10500, 6500),
+                new Point(12000, 500),
+                new Point(12000, 3500),
+                new Point(12000, 6500),
             ],
             flares: 3, // amount of flare this roject have
             flareAngle: 40,
@@ -369,7 +371,7 @@
             // chose random start position
             if (typeof start == 'number')
                 this.pos = rockProp[team].start[start];
-            if (start instanceof Point)
+            else if (start instanceof Point)
                 this.pos = start;
             else
                 this.pos = randomItem(rockProp[team].start).copy();
@@ -505,8 +507,8 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, +20), 0, new Point(1500, 4000), 5);
-    new Rocket(new Vector(1, -20), 0, new Point(1500, 3000), 5);
+    new Rocket(new Vector(1, -20), 0, new Point(1500, 6500), 5);
+    new Rocket(new Vector(1, +20), 0, new Point(1500, 500), 5);
 
 
     // first rocket
