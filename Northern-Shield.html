@@ -136,7 +136,7 @@
                         new Vector(0, 0), 
                         0, 
                         rockProp[0].alt % rockProp[0].start.length,
-                        randomItem([0, 0, 3]) // spawm bias setting
+                        randomItem([0, 9, 3]) // spawm bias setting
                     );
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 9;
@@ -337,6 +337,14 @@
             flareAngle: 30,
             flareTrigger: 3000,
             shell: 2, // the shell index that got separate out
+        },
+        {
+            name: "Uria 2 — Leopard: interceptor with AOA limiter", // just a name
+            maxSpeed: 150, // pixels per tick
+            acceleration: 100, // MAX pixel per tick quare
+            turnDeg: 45, // turn degree per tick, essentially AOA limiter
+            fuel: 7000, // how many pixels before out of fuel
+            exRad: 75, // explosion radius
         },
     ]
 
