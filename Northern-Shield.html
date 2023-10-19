@@ -1,11 +1,29 @@
 <head>
     <style>
         body {
+            font-family: 'Courier New', Courier, monospace;
             background-color: black;
+            color: #fbfef9;
+        }
+
+        #stats {
+            position: fixed;
+            width: 100%; /* Full width (cover the whole page) */
+            height: 100%; /* Full height (cover the whole page) */
+            top: 1rem;
+            left: 1rem;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
         }
     </style>
 </head>
 <body>
+    <div id="stats">
+        <p>Objects: <span id="objects"></span>/(<span id="tObjects"></span>)</p>
+        <p>Team 0 uncontrolled: <span id="uTeam0"></span>/<span id="team0"></span></p>
+        <p>Team 1 uncontrolled: <span id="uTeam1"></span>/<span id="team1"></span></p>
+    </div>
     <canvas id="canvas" height="700" width="1200"></canvas>
 </body>
 <script>
@@ -349,14 +367,14 @@
             flares: 1,
             flareAngle: 1,
             flareTrigger: 1500, // lower range because the bullet turn
-            shell: 12,
+            shell: 0,
             fireRate: 2,
         },
         {
             name: "Uria 3 bullet", // just a name
             maxSpeed: 500, // pixels per tick
             acceleration: 500, // MAX pixel per tick quare
-            turnDeg: 7, // turn degree per tick, essentially AOA limiter
+            turnDeg: 0, // turn degree per tick, essentially AOA limiter
             fuel: 1000, // how many pixels before out of fuel
             exRad: 25, // explosion radius
             uncontrol: true,
@@ -486,8 +504,20 @@
             ctx.fill();
 
             rockProp[0].system();
-            rockProp[1].system()
+            rockProp[1].system();
+            
+            // stat display
+            document.getElementById('objects').innerText = Rocket.list.length;
+            document.getElementById('tObjects').innerText = Rocket.count[0] + ' + ' + Rocket.count[1];
+            let temp1 = Rocket.list.filter(r => r.team === 0);
+            document.getElementById('team0').innerText = temp1.length;
+            document.getElementById('uTeam0').innerText = temp1.filter(r => r?.uncontrol).length;
+            temp1 = Rocket.list.filter(r => r.team === 1);
+            document.getElementById('team1').innerText = temp1.length;
+            document.getElementById('uTeam1').innerText = temp1.filter(r => r?.uncontrol).length;
 
+
+            // rocket canvas
             for (let l1 = 0; l1 < Rocket.list.length; l1++) {
                 let rocket = Rocket.list[l1];
                 if (rocket.destroyed != true) {
