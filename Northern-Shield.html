@@ -569,11 +569,11 @@
     new Rocket(new Vector(random() * 50, random() * 360), 1, 1, 11);
 
     let sim = setInterval(() => {
-        can.tick();
         if (
             Rocket.list.filter(r => r.team === 0).length <= 0
             || Rocket.list.filter(r => r.team === 1).length <= 0
         ) clearInterval(sim);
+        can.tick();
     }, 100);
     can.tick()
 </script>
