@@ -115,7 +115,7 @@
                         new Vector(0, 0), 
                         0, 
                         rockProp[0].alt % rockProp[0].start.length,
-                        randomItem([0, 9, 3]) // spawm bias setting
+                        11 // spawm bias setting
                     );
                     rockProp[0].alt++;
                     rockProp[0].cooldown = 9;
@@ -159,8 +159,8 @@
                             agl += (2 * rocket.flareAngle) / max(rf - 1, 1); // 
                         }
                         // mark to destroy by setting it reached desination
-                        // don't remove it it is stationary, but refill it instead
-                        if (rocket.maxSpeed != 0) { 
+                        // only remove when there is no fire rate (shot carrier)
+                        if (rocket.fireRate == undefined) { 
                             rocket.destroyed = true;
                         } else {
                             rocket.cooldown = rocket.fireRate;
@@ -169,11 +169,8 @@
                     }
 
                     let rel = minRock.vec.copy(); // convert to relative point for ahead prediction
-                    if (!rocket.maxSpeed) {
-                        // if guns then displace the bulet speed
-                        // rel.len += 1000;
-                        rocket.cooldown--;
-                    }
+                    if (rocket.fireRate) // if there is firerate (aka guns)
+                        rocket.cooldown--
                     rel = rel.toPoint();
                     rocket.tar = minRock.pos.copy();
                     rocket.tar.x += rel.x;
@@ -207,7 +204,8 @@
                         new Vector(random() * 50, random() * 360),
                         1,
                         randomItem([...rockProp[1].start]),
-                        randomItem([1, 1, 1, 1, 1, 1, 8]));
+                        randomItem([1, 1, 1, 1, 1, 1, 8])
+                    );
                     rockProp[1].cooldown = 10
                 }
                 rockProp[1].cooldown--
@@ -340,6 +338,28 @@
             flareTrigger: 3500, // lower range because the bullet turn
             shell: 7,
             fireRate: 5,
+        },
+        {
+            name: "Uria 3 — Seeker: UAV", // just a name
+            maxSpeed: 100, // pixels per tick
+            acceleration: 10, // MAX pixel per tick quare
+            turnDeg: 7, // turn degree per tick, essentially AOA limiter
+            fuel: 100000, // how many pixels before out of fuel
+            exRad: 1, // explosion radius
+            flares: 1,
+            flareAngle: 1,
+            flareTrigger: 1500, // lower range because the bullet turn
+            shell: 12,
+            fireRate: 2,
+        },
+        {
+            name: "Uria 3 bullet", // just a name
+            maxSpeed: 500, // pixels per tick
+            acceleration: 500, // MAX pixel per tick quare
+            turnDeg: 7, // turn degree per tick, essentially AOA limiter
+            fuel: 1000, // how many pixels before out of fuel
+            exRad: 25, // explosion radius
+            uncontrol: true,
         },
     ]
 
