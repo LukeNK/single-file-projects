@@ -118,7 +118,7 @@
                 new Point(1500, 3500),
                 new Point(1500, 6500),
             ],
-            cooldown: 0, // launch cooldown counter, set to add delay
+            cooldown: 99999990, // launch cooldown counter, set to add delay
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
@@ -212,7 +212,7 @@
             flareAngle: 40,
             flareTrigger: 1500, // distance to trigger flare
             shell: 2,
-            cooldown: 0,
+            cooldown: 9999999999990,
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 0),
                     friendRock = Rocket.list.filter(r => r.team === 1);
@@ -246,9 +246,10 @@
                         rocket.tar = randomItem(rockProp[0].start);
 
                     // deploy flares
+                    rocket.cooldown--;
                     if (
                         !rocket.flares
-                        && ((rocket.fireRate)? !rocket.cooldown : true)
+                        && ((rocket.fireRate)? 0 < rocket.cooldown : true)
                     ) return; // if no flare, or if it is gun then check if the cooldown reached 0
                     min = Infinity;
                     for (const erock of enemyRock) {
@@ -372,8 +373,8 @@
             flares: 1,
             flareAngle: 1,
             flareTrigger: 1500, // lower range because the bullet turn
-            shell: 12,
-            fireRate: 2,
+            shell: 0,
+            fireRate: 20,
         },
         {
             name: "Uria 3 bullet", // just a name
@@ -474,11 +475,11 @@
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 10;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
-                ctx.lineWidth = 1; // ############################################### MAKE THE NUMBER SMALL UNTIL HAVE BETTER SYSTEM
+                ctx.lineWidth = 10; // ############################################### MAKE THE NUMBER SMALL UNTIL HAVE BETTER SYSTEM
                 ctx.strokeStyle = '#A63446'
             } else if (type == 'e') {
                 // explosion
@@ -555,13 +556,14 @@
     }
 
     // ground defense
-    new Rocket(new Vector(1, -20), 0, new Point(1500, 6500), 5);
-    new Rocket(new Vector(1, +20), 0, new Point(1500, 500), 5);
-    new Rocket(new Vector(1, +20), 0, new Point(1500, 3500), 10);
+    // new Rocket(new Vector(1, -20), 0, new Point(1500, 6500), 5);
+    // new Rocket(new Vector(1, +20), 0, new Point(1500, 500), 5);
+    // new Rocket(new Vector(1, +20), 0, new Point(1500, 3500), 10);
 
 
     // first rocket
-    new Rocket(new Vector(random() * 50, random() * 360), 1);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, 1, 0);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, 1, 11);
 
     let sim = setInterval(() => {
         can.tick();
