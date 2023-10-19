@@ -118,7 +118,7 @@
                 new Point(1500, 3500),
                 new Point(1500, 6500),
             ],
-            cooldown: 99999990, // launch cooldown counter, set to add delay
+            cooldown: 10, // launch cooldown counter, set to add delay
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
@@ -212,7 +212,7 @@
             flareAngle: 40,
             flareTrigger: 1500, // distance to trigger flare
             shell: 2,
-            cooldown: 9999999999990,
+            cooldown: 10,
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 0),
                     friendRock = Rocket.list.filter(r => r.team === 1);
@@ -249,14 +249,13 @@
                     rocket.cooldown--;
                     if (
                         !rocket.flares
-                        && ((rocket.fireRate)? 0 < rocket.cooldown : true)
+                        || ((rocket.fireRate)? 0 < rocket.cooldown : false)
                     ) return; // if no flare, or if it is gun then check if the cooldown reached 0
                     min = Infinity;
                     for (const erock of enemyRock) {
                         let dis = Vector.fromPoints(rocket.pos, erock.pos);
                         if (dis.len < min) min = dis.len;
                     }
-
                     if (min < rocket.flareTrigger) {
                         let v = rocket.vec.copy();
                         v.len += 200;
@@ -265,7 +264,11 @@
                         rocket.flares--
                     }
 
-                    rocket.cooldown = rocket.fireRate || undefined; // reset cooldown
+                    if (rocket.fireRate) {
+                        // refill flare
+                        rocket.flares++
+                        rocket.cooldown = rocket.fireRate || undefined; // reset cooldown
+                    }
                 });
             }
         },
@@ -372,7 +375,7 @@
             exRad: 1, // explosion radius
             flares: 1,
             flareAngle: 1,
-            flareTrigger: 1500, // lower range because the bullet turn
+            flareTrigger: 3500, // lower range because the bullet turn
             shell: 0,
             fireRate: 20,
         },
@@ -562,7 +565,7 @@
 
 
     // first rocket
-    new Rocket(new Vector(random() * 50, random() * 360), 0, 1, 0);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, 1, 11);
     new Rocket(new Vector(random() * 50, random() * 360), 1, 1, 11);
 
     let sim = setInterval(() => {
