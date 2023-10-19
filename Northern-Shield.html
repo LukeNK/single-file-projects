@@ -399,7 +399,7 @@
                 throw TypeError('Rocket constructor types invalid');
 
             this.vec = vector; this.tar; this.team = team;
-            let rocketProperties = rockProp[type || team]; // if the type is specified, use type
+            let rocketProperties = rockProp[(type != undefined)? type : team]; // if the type is specified, use type
             for (const property in rocketProperties) { 
                 if (property == 'start' || property == 'system') continue;
                 if (property == 'fireRate') this.cooldown = 0;
