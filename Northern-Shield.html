@@ -570,7 +570,10 @@
 
     let sim = setInterval(() => {
         can.tick();
-        if (Rocket.list.filter(r => r.team === 1).length <= 0) clearInterval(sim);
+        if (
+            Rocket.list.filter(r => r.team === 0).length <= 0
+            || Rocket.list.filter(r => r.team === 1).length <= 0
+        ) clearInterval(sim);
     }, 100);
     can.tick()
 </script>
