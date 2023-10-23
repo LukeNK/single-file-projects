@@ -24,7 +24,7 @@
         <p>Team 0 uncontrolled: <span id="uTeam0"></span>/<span id="team0"></span></p>
         <p>Team 1 uncontrolled: <span id="uTeam1"></span>/<span id="team1"></span></p>
     </div>
-    <canvas id="canvas" height="700" width="1200"></canvas>
+    <canvas id="canvas" height="1400" width="2400"></canvas>
 </body>
 <script>
     // constants
@@ -118,20 +118,20 @@
                 new Point(1500, 3500),
                 new Point(1500, 6500),
             ],
-            cooldown: 10, // launch cooldown counter, set to add delay
+            cooldown: 9999999999910, // launch cooldown counter, set to add delay
             alt: 100, // alternative start, set high to it always work with mod
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 1),
                     friendRock = Rocket.list.filter(r => r.team === 0);
-                
+
                 // count the number of uncontroled rockets
                 if (
                     rockProp[0].cooldown <= 0
                     && friendRock.filter(r => !r.uncontrol).length < enemyRock.length
                 ) {
                     new Rocket(
-                        new Vector(0, 0), 
-                        0, 
+                        new Vector(0, 0),
+                        0,
                         rockProp[0].alt % rockProp[0].start.length,
                         randomItem([0, 9, 3]) // spawm bias setting
                     );
@@ -152,7 +152,7 @@
 
                     if (
                         rocket.tar
-                        && 0 <= rocket.flares 
+                        && 0 <= rocket.flares
                         && min <= rocket.flareTrigger
                         && ((rocket?.cooldown)? rocket.cooldown < 0 : true) // if there is a cooldown
                         && abs(Vector.fromPoints(rocket.pos, rocket.tar).dirDiff(rocket.vec) <= rocket.flareAngle)
@@ -169,16 +169,16 @@
                             v.len += 200;
                             v.dir += agl; // separate from the rocket
                             new Rocket(
-                                v, 
-                                0, 
-                                rocket.pos.copy(), 
+                                v,
+                                0,
+                                rocket.pos.copy(),
                                 rocket.shell
                             );
-                            agl += (2 * rocket.flareAngle) / max(rf - 1, 1); // 
+                            agl += (2 * rocket.flareAngle) / max(rf - 1, 1); //
                         }
                         // mark to destroy by setting it reached desination
                         // only remove when there is no fire rate (shot carrier)
-                        if (rocket.fireRate == undefined) { 
+                        if (rocket.fireRate == undefined) {
                             rocket.destroyed = true;
                         } else {
                             rocket.cooldown = rocket.fireRate;
@@ -200,7 +200,7 @@
             name: "Ironu 1", // just a name
             maxSpeed: 75,
             acceleration: 10,
-            turnDeg: 5, 
+            turnDeg: 5,
             fuel: 50000,
             exRad: 300,
             start: [
@@ -212,7 +212,7 @@
             flareAngle: 40,
             flareTrigger: 1500, // distance to trigger flare
             shell: 2,
-            cooldown: 10,
+            cooldown: 999999999910,
             system: () => {
                 let enemyRock = Rocket.list.filter(r => r.team === 0),
                     friendRock = Rocket.list.filter(r => r.team === 1);
@@ -231,8 +231,8 @@
                 friendRock.forEach(rocket => {
                     // find the closest target
                     let min = Infinity, item;
-                    for (const target of rockProp[0].start) {
-                        let dis = Vector.fromPoints(rocket.pos, target);
+                    for (const target of enemyRock.filter(r => r.fuel >= 20000)) {
+                        let dis = Vector.fromPoints(rocket.pos, target.pos);
                         if (dis.len < min) {
                             min = dis.len;
                             item = target;
@@ -240,10 +240,7 @@
                     }
 
                     // check if within strike distance
-                    if (min < rocket.exRad)
-                        rocket.tar = item;
-                    else
-                        rocket.tar = randomItem(rockProp[0].start);
+                    rocket.tar = item.pos;
 
                     // deploy flares
                     rocket.cooldown--;
@@ -252,10 +249,12 @@
                         || ((rocket.fireRate)? 0 < rocket.cooldown : false)
                     ) return; // if no flare, or if it is gun then check if the cooldown reached 0
                     min = Infinity;
+
                     for (const erock of enemyRock) {
                         let dis = Vector.fromPoints(rocket.pos, erock.pos);
                         if (dis.len < min) min = dis.len;
                     }
+
                     if (min < rocket.flareTrigger) {
                         let v = rocket.vec.copy();
                         v.len += 200;
@@ -276,7 +275,7 @@
             name: "Flare",
             maxSpeed: 20,
             acceleration: 1,
-            turnDeg: 0, 
+            turnDeg: 0,
             fuel: 1000,
             exRad: 10,
             uncontrol: true
@@ -285,7 +284,7 @@
             name: "Uria 1 - Northern Wing: shot carrier",
             maxSpeed: 125,
             acceleration: 20,
-            turnDeg: 15, 
+            turnDeg: 15,
             fuel: 10000,
             exRad: 10,
             flares: 9,
@@ -297,7 +296,7 @@
             name: "shot",
             maxSpeed: 40,
             acceleration: 0,
-            turnDeg: 0, 
+            turnDeg: 0,
             fuel: 2000,
             exRad: 50,
             uncontrol: true
@@ -306,7 +305,7 @@
             name: "Static ground flare-trigger",
             maxSpeed: 0,
             acceleration: 0,
-            turnDeg: 0, 
+            turnDeg: 0,
             fuel: 10000,
             exRad: 50,
             flares: 1,
@@ -319,7 +318,7 @@
             name: "Flare-trigger bullet",
             maxSpeed: 170,
             acceleration: 1000,
-            turnDeg: 0, 
+            turnDeg: 0,
             fuel: 6000,
             exRad: 20,
             uncontrol: true
@@ -328,7 +327,7 @@
             name: "Self-adjust bullet",
             maxSpeed: 50,
             acceleration: 50,
-            turnDeg: 1, 
+            turnDeg: 1,
             fuel: 3500,
             exRad: 50,
             uncontrol: true
@@ -376,17 +375,17 @@
             flares: 1,
             flareAngle: 1,
             flareTrigger: 3500, // lower range because the bullet turn
-            shell: 0,
+            shell: 12,
             fireRate: 20,
         },
         {
-            name: "Uria 3 bullet", // just a name
-            maxSpeed: 500, // pixels per tick
-            acceleration: 500, // MAX pixel per tick quare
-            turnDeg: 0, // turn degree per tick, essentially AOA limiter
-            fuel: 1000, // how many pixels before out of fuel
-            exRad: 25, // explosion radius
-            uncontrol: true,
+            name: "Uria 3A — Finder: UAV missile", // just a name
+            maxSpeed: 150, // pixels per tick
+            acceleration: 200, // MAX pixel per tick quare
+            turnDeg: 5, // turn degree per tick, essentially AOA limiter
+            fuel: 3500, // how many pixels before out of fuel
+            exRad: 100, // explosion radius
+            uncontrol: true
         },
     ]
 
@@ -400,7 +399,7 @@
 
             this.vec = vector; this.tar; this.team = team;
             let rocketProperties = rockProp[(type != undefined)? type : team]; // if the type is specified, use type
-            for (const property in rocketProperties) { 
+            for (const property in rocketProperties) {
                 if (property == 'start' || property == 'system') continue;
                 if (property == 'fireRate') this.cooldown = 0;
                 // copy properties
@@ -415,7 +414,7 @@
                 this.pos = start;
             else
                 this.pos = randomItem(rockProp[team].start).copy();
-            
+
             Rocket.count[team]++ // gather statistic
             Rocket.list.push(this);
         }
@@ -445,10 +444,12 @@
 
             // direction
             d = dis.dirDiff(this.vec)
-            this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg); 
+            this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
         }
         destroy() {
             // don't destroy guns
+            if (this.fuel > 20000) console.log(`Team ${abs(this.team - 1)} report a kill!`)
+
             if (this.maxSpeed) this.destroyed = true;
 
             for (const rocket of Rocket.list) {
@@ -482,7 +483,7 @@
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
-                ctx.lineWidth = 10; // ############################################### MAKE THE NUMBER SMALL UNTIL HAVE BETTER SYSTEM
+                ctx.lineWidth = 1; // ############################################### MAKE THE NUMBER SMALL UNTIL HAVE BETTER SYSTEM
                 ctx.strokeStyle = '#A63446'
             } else if (type == 'e') {
                 // explosion
@@ -509,12 +510,12 @@
             ctx.stroke();
         },
         tick: () => {
-            ctx.rect(0, 0, 20000, 20000);
+            ctx.rect(0, 0, 30000, 30000);
             ctx.fill();
 
             rockProp[0].system();
             rockProp[1].system();
-            
+
             // stat display
             document.getElementById('objects').innerText = Rocket.list.length;
             document.getElementById('tObjects').innerText = Rocket.count[0] + ' + ' + Rocket.count[1];
@@ -535,7 +536,7 @@
                     let p2 = rocket.getNextPoint();
 
                     can.line(rocket.pos, p0, 'e'); // trail
-                    if (rocket.uncontrol) 
+                    if (rocket.uncontrol)
                         can.circle(rocket.pos, rocket.exRad / 2, 'e')
                     else
                         can.line(rocket.pos, p2, 'r');
@@ -565,8 +566,22 @@
 
 
     // first rocket
-    new Rocket(new Vector(random() * 50, random() * 360), 0, 1, 11);
-    new Rocket(new Vector(random() * 50, random() * 360), 1, 1, 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 0, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
+    new Rocket(new Vector(random() * 50, random() * 360), 1, new Point(12000, 7000), 11);
 
     let sim = setInterval(() => {
         if (
