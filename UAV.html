@@ -27,6 +27,7 @@
     <canvas id="canvas" height="3000" width="3000"></canvas>
 </body>
 <script>
+    const Delta = 0.1; // Length between frames
     // constants
     const PI = Math.PI,
         sqrt = Math.sqrt,
@@ -106,11 +107,13 @@
         static airports = [
             [
                 // team 0 airports
-                {pos: new Point(0, 0), dir: 45}
+                {pos: new Point(0, 0), dir: 45},
+                {pos: new Point(0, 300), dir: 45}
             ],
             [
                 // team 1 airports
-                {pos: new Point(1000, 1000), dir: 220}
+                {pos: new Point(1000, 0), dir: 90},
+                {pos: new Point(1300, 0), dir: 90}
             ]
         ]
         static models = [
@@ -120,7 +123,8 @@
                 acceleration: 1, // m/s^2
                 v1: 55, // minimum speed, plane can start to turn after this
                 turnDeg: 28, // turn degree per second
-                fuel: 100000, // how many m before out of fuel
+                missile: 0, // missile model
+                missileRate: 3 / Delta // second per missile (frames per missile)
             }
         ]
         static list = []
@@ -129,6 +133,9 @@
             this.team = team;
             this.model = model;
             this.destroyed = false;
+
+            // WSO
+            this.cooldown = 0;
 
             if (start === undefined)
                 start = Math.floor(random() * Plane.airports[team].length);
@@ -156,7 +163,6 @@
         }
         tickMove(friendly, enemy) {
             this.pos = this.getNextPoint(); // go to next point
-            this.fuel -= this.vec.len; // reduce fuel
 
             // calculate next vector
             // find closest plane
@@ -179,39 +185,108 @@
             this.vec.len = min(this.vec.len, this.maxSpeed)
 
             // direction
-            if (this.vec.len > this.v1) {
-                // only turn when above v1
-                d = dif.dirDiff(this.vec)
-                this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
-            }
+            if (this.vec.len < this.v1) return; // only turn and shot when above v1
+            d = dif.dirDiff(this.vec)
+            this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
+
+            // calculate weapon system (Heil Prez)
+            this.cooldown--;
+            if (this.cooldown > 0) return; // still cooling down
+            if (abs(d) > 45) return; // not in lock range
+            new Missile(this.pos.copy(), this.vec.copy(), minPlane.pos.copy(), this.team, 0);
+
+            // refil firerate
+            this.cooldown = this.missileRate;
         }
     }
 
     class Missile {
         static models = [
-
+            {
+                name: "Standard missile", // just a name
+                maxSpeed: 340, // m/s
+                acceleration: 300, // m/s^2
+                v1: 0, // minimum speed, plane can start to turn after this
+                turnDeg: 40, // turn degree per second
+                fuel: 1000, // how many m before out of fuel
+                exRad: 50, // explosion radius
+            }
         ]
-        constructor(pos, vec, tar) {
+        static list = []
+        constructor(pos, vec, tar, team, model) {
+            this.pos = pos;
+            this.vec = vec;
+            this.tar = tar;
+            this.team = team;
+            this.model = model;
+            this.destroyed = false;
 
+            for (const property in Missile.models[model])
+                this[property] = Missile.models[model][property];
+
+            Missile.list.push(this)
         }
-        tickMove() {
+        getNextPoint() {
+            // get the next point with absolute coord
+            let x = this.pos.x, y = this.pos.y,
+                rel = this.vec.toPoint();
+            return new Point(x + rel.x, y + rel.y)
+        }
+        tickMove(targets) {
+            this.pos = this.getNextPoint();
+            this.fuel -= this.vec.len;
+            if (this.fuel <= 0) return this.destroyed = true; // destroyed
 
+            // find the closest provided entity compare to the old target
+            let minT = Infinity, minTarget;
+            for (const target of targets) {
+                let dis = Vector.fromPoints(this.pos, target.pos);
+                if (dis.len < minT) {
+                    minT = dis.len;
+                    minTarget = target;
+                }
+            }
+
+            if (minT < this.exRad) {
+                this.destroyed = true;
+                minTarget.destroyed = true;
+                return
+            }
+
+            // different between current heading and minPlane
+            let dif = Vector.fromPoints(this.pos, minTarget.pos);
+
+            // speed stuff
+            let d = dif.len - this.vec.len;
+            d = (d < 0)? max(d, -this.acceleration) : min(d, this.acceleration);
+            this.vec.len += d;
+            this.vec.len = min(this.vec.len, this.maxSpeed)
+
+            // direction
+            if (this.vec.len < this.v1) return; // only turn and shot when above v1
+            d = dif.dirDiff(this.vec)
+            this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
+
+            this.tar = minTarget.pos.copy();
         }
     }
 
-    const Delta = 0.1; // Length between frames
     // all properties that are time-based will be multiplied by Delta
     const timeProp = [
         'maxSpeed',
         'acceleration',
         'v1',
         'turnDeg',
-        'fireRate'
+        'fireRate',
     ]
     for (const plane of Plane.models)
         for (const prop in plane)
             if (timeProp.includes(prop))
                 plane[prop] *= Delta;
+    for (const missile of Missile.models)
+        for (const prop in missile)
+            if (timeProp.includes(prop))
+                missile[prop] *= Delta;
 </script>
 <script>
     // display
@@ -232,7 +307,7 @@
                 ctx.strokeStyle = '#FA824C'
             } else if (type == 'r') {
                 // rocket
-                ctx.lineWidth = 10;
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
@@ -285,27 +360,50 @@
             for (let l1 = 0; l1 < Plane.list.length; l1++) {
                 let plane = Plane.list[l1];
 
-                if (plane.destroyed != true) {
-                    if (plane.team == 0) plane.tickMove(team0, team1);
-                    else plane.tickMove(team1, team0);
-                    let p2 = plane.getNextPoint();
+                if (plane.team == 0) plane.tickMove(team0, team1);
+                else plane.tickMove(team1, team0);
+                let p2 = plane.getNextPoint();
 
-                    plane.trail.pop();
-                    plane.trail.unshift(plane.pos.copy())
-                    for (let l1 = 0; l1 < plane.trail.length - 1; l1++)
-                        can.line(plane.trail[l1], plane.trail[l1+1], 't');
-                    can.circle(plane.pos, plane.v1, plane.team)
-                    can.line(plane.pos, p2, plane.team)
+                plane.trail.pop();
+                plane.trail.unshift(plane.pos.copy())
+                for (let l1 = 0; l1 < plane.trail.length - 1; l1++)
+                    can.line(plane.trail[l1], plane.trail[l1 + 1], 't');
+                can.circle(plane.pos, plane.v1, plane.team)
+                can.line(plane.pos, p2, plane.team)
+
+                if (plane.destroyed) {
+                    can.circle(plane.pos, 100, 'e')
+                    Plane.list.splice(l1, 1);
+                    l1--
                 }
             };
+
+            for (let l1 = 0; l1 < Missile.list.length; l1++) {
+                let missile = Missile.list[l1];
+
+                if (missile.team === 0) missile.tickMove(team1);
+                else missile.tickMove(team0);
+
+                can.line(missile.pos, missile.getNextPoint(), 'r')
+
+                if (missile.destroyed) {
+                    can.circle(missile.pos, missile.exRad, 'e')
+                    Missile.list.splice(l1, 1);
+                    l1--
+                }
+            }
         }
     }
 
     let a = new Plane(new Vector(1, 0), 0, 0, 0)
     let b = new Plane(new Vector(1, 0), 1, 0, 0)
-
+    new Plane(new Vector(1, 0), 1, 0, 1)
 
     let sim = setInterval(() => {
+        if (
+            Plane.list.filter(r => r.team === 0).length <= 0
+            || Plane.list.filter(r => r.team === 1).length <= 0
+        ) return clearInterval(sim);
         can.tick();
     }, 1000 * Delta);
     can.tick()
