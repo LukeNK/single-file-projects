@@ -24,7 +24,7 @@
         <p>Team 0 uncontrolled: <span id="uTeam0"></span>/<span id="team0"></span></p>
         <p>Team 1 uncontrolled: <span id="uTeam1"></span>/<span id="team1"></span></p>
     </div>
-    <canvas id="canvas" height="1400" width="2400"></canvas>
+    <canvas id="canvas" height="3000" width="3000"></canvas>
 </body>
 <script>
     // constants
@@ -110,8 +110,7 @@
             ],
             [
                 // team 1 airports
-                {pos: new Point(100, 100), dir: 45}
-
+                {pos: new Point(1000, 1000), dir: 220}
             ]
         ]
         static models = [
@@ -120,7 +119,7 @@
                 maxSpeed: 175, // m/s
                 acceleration: 1, // m/s^2
                 v1: 55, // minimum speed, plane can start to turn after this
-                turnDeg: 7, // turn degree per second
+                turnDeg: 28, // turn degree per second
                 fuel: 100000, // how many m before out of fuel
             }
         ]
