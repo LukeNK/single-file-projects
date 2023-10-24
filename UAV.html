@@ -20,9 +20,9 @@
 </head>
 <body>
     <div id="stats">
-        <p>Objects: <span id="objects"></span>/(<span id="tObjects"></span>)</p>
-        <p>Team 0 uncontrolled: <span id="uTeam0"></span>/<span id="team0"></span></p>
-        <p>Team 1 uncontrolled: <span id="uTeam1"></span>/<span id="team1"></span></p>
+        <p>Team 0: <span id="team0"></span></p>
+        <p>Team 1: <span id="team1"></span></p>
+        <p>Missiles: <span id="objects"></span></p>
     </div>
     <canvas id="canvas" height="3000" width="3000"></canvas>
 </body>
@@ -404,12 +404,9 @@
                 team1 = Plane.list.filter(p => p.team === 1);
 
             // stat display
-            document.getElementById('objects').innerText = Plane.list.length;
-            // document.getElementById('tObjects').innerText = Plane.count[0] + ' + ' + Plane.count[1];
             document.getElementById('team0').innerText = team0.length;
-            document.getElementById('uTeam0').innerText = team0.filter(r => r?.uncontrol).length;
             document.getElementById('team1').innerText = team1.length;
-            document.getElementById('uTeam1').innerText = team1.filter(r => r?.uncontrol).length;
+            document.getElementById('objects').innerText = Missile.list.length;
 
             for (let l1 = 0; l1 < Plane.list.length; l1++) {
                 let plane = Plane.list[l1];
