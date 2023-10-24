@@ -25,7 +25,7 @@
         <p>Team 1: <span id="team1"></span></p>
         <p>Missiles: <span id="objects"></span></p>
     </div>
-    <canvas id="canvas" height="3000" width="3000"></canvas>
+    <canvas id="canvas" height="5000" width="5000"></canvas>
 </body>
 <script>
     const Delta = 0.1; // Length between frames
@@ -116,11 +116,11 @@
             ],
             [
                 // team 1 airports
-                {pos: new Point(3000, 1300), dir: 180},
-                {pos: new Point(3000, 1400), dir: 180},
-                {pos: new Point(3000, 1500), dir: 180},
-                {pos: new Point(3000, 1600), dir: 180},
-                {pos: new Point(3000, 1700), dir: 180},
+                {pos: new Point(5000, 1300), dir: 180},
+                {pos: new Point(5000, 1400), dir: 180},
+                {pos: new Point(5000, 1500), dir: 180},
+                {pos: new Point(5000, 1600), dir: 180},
+                {pos: new Point(5000, 1700), dir: 180},
             ]
         ]
         static models = [
@@ -205,7 +205,7 @@
 
             // calculate weapon system (Heil Prez)
             this.missileCool--;
-            if (this.missileCool < 0 && abs(d) < 45) {
+            if (this.missileCool < 0 && abs(d) < 30) {
                 new Missile(this.pos.copy(), this.vec.copy(), minPlane.pos.copy(), this.team, this.missile);
                 // refil firerate
                 this.missileGroupCount--;
@@ -260,7 +260,7 @@
                 v1: 0, // minimum speed, plane can start to turn after this
                 turnDeg: 40, // turn degree per second
                 fuel: 1000, // how many m before out of fuel
-                exRad: 50, // explosion radius
+                exRad: 25, // explosion radius
             },
             {
                 name: "Standard flare", // just a name
@@ -407,6 +407,11 @@
             ctx.rect(0, 0, 30000, 30000);
             ctx.fill();
 
+            // prevent run order bias
+            let i = floor(random() * Plane.list.length),
+                j = floor(random() * Plane.list.length);
+            [Plane.list[i], Plane.list[j]] = [Plane.list[j], Plane.list[i]];
+
             let team0 = Plane.list.filter(p => p.team === 0),
                 team1 = Plane.list.filter(p => p.team === 1);
 
@@ -467,56 +472,11 @@
     new Plane(new Vector(0, 0), 1, 0, 2)
     new Plane(new Vector(0, 0), 1, 0, 3)
     new Plane(new Vector(0, 0), 1, 0, 4)
-    new Plane(new Vector(100, 0), 0, 0, 0)
-    new Plane(new Vector(100, 0), 0, 0, 1)
-    new Plane(new Vector(100, 0), 0, 0, 2)
-    new Plane(new Vector(100, 0), 0, 0, 3)
-    new Plane(new Vector(100, 0), 0, 0, 4)
-    new Plane(new Vector(100, 0), 1, 0, 0)
-    new Plane(new Vector(100, 0), 1, 0, 1)
-    new Plane(new Vector(100, 0), 1, 0, 2)
-    new Plane(new Vector(100, 0), 1, 0, 3)
-    new Plane(new Vector(100, 0), 1, 0, 4)
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 0, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
-    new Plane(new Vector(100, random() * 360), 1, 0, new Point(1500, 1500))
+    // shuffle
+    Plane.list = Plane.list
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
 
     let sim = setInterval(() => {
         if (
