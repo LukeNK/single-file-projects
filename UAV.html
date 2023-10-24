@@ -230,7 +230,7 @@
                     // separation vector
                     let vec = this.vec.copy();
                     vec.len += 50
-                    vec.dir += randomItem([-1, 1]) * 45;
+                    vec.dir += randomItem([-1, 1]) * randomItem([45, 125]); // multiple flare angle
                     new Missile(this.pos.copy(), vec, minPlane.pos.copy(), this.team, this.flare);
                     // refil firerate
                     this.flareGroupCount--;
