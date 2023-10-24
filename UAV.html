@@ -124,7 +124,11 @@
                 v1: 55, // minimum speed, plane can start to turn after this
                 turnDeg: 28, // turn degree per second
                 missile: 0, // missile model
-                missileRate: 3 / Delta // second per missile (frames per missile)
+                missileGroup: 2, // how many missile in a group before cooling down
+                missileRate: 3 / Delta, // second per missile (frames per missile)
+                flare: 1,
+                flareGroup: 5,
+                flareRate: 7 / Delta,
             }
         ]
         static list = []
@@ -133,9 +137,6 @@
             this.team = team;
             this.model = model;
             this.destroyed = false;
-
-            // WSO
-            this.cooldown = 0;
 
             if (start === undefined)
                 start = Math.floor(random() * Plane.airports[team].length);
@@ -148,6 +149,12 @@
 
             for (const property in Plane.models[model])
                 this[property] = Plane.models[model][property];
+
+            // WSO
+            this.missileCool = 0;
+            this.missileGroupCount = this.missileGroup;
+            this.flareCool = 0;
+            this.flareGroupCount = this.flareGroup;
 
             // push trail history
             this.trail = Array.from({length: 5})
@@ -190,13 +197,50 @@
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
 
             // calculate weapon system (Heil Prez)
-            this.cooldown--;
-            if (this.cooldown > 0) return; // still cooling down
-            if (abs(d) > 45) return; // not in lock range
-            new Missile(this.pos.copy(), this.vec.copy(), minPlane.pos.copy(), this.team, 0);
+            this.missileCool--;
+            if (this.missileCool < 0 && abs(d) < 45) {
+                new Missile(this.pos.copy(), this.vec.copy(), minPlane.pos.copy(), this.team, this.missile);
+                // refil firerate
+                this.missileGroupCount--;
+                if (this.missileGroupCount <= 0) {
+                    // the group is out, refill
+                    this.missileGroupCount = this.missileGroup;
+                    this.missileCool = this.missileRate;
+                }
+            }
 
-            // refil firerate
-            this.cooldown = this.missileRate;
+            // calculate flareSystem
+            this.flareCool--;
+            if (this.flareCool < 0) {
+                let minM = Infinity, minMissile;
+                for (
+                    const missile of
+                    Missile.list.filter(t =>
+                        !t.isFlare
+                        && t.team == Number(!Boolean(this.team))) // get the enemy team
+                ) {
+                    let dis = Vector.fromPoints(this.pos, missile.pos);
+                    if (dis.len < minM) {
+                        minM = dis.len;
+                        minMissile = missile;
+                    }
+                }
+
+                if (this.flareCool < 0 && minM < 1000) {
+                    // separation vector
+                    let vec = this.vec.copy();
+                    vec.len += 50
+                    vec.dir += randomItem([-1, 1]) * 45;
+                    new Missile(this.pos.copy(), vec, minPlane.pos.copy(), this.team, this.flare);
+                    // refil firerate
+                    this.flareGroupCount--;
+                    if (this.flareGroupCount <= 0) {
+                        // the group is out, refill
+                        this.flareGroupCount = this.flareGroup;
+                        this.flareCool = this.flareRate;
+                    }
+                }
+            }
         }
     }
 
@@ -210,7 +254,17 @@
                 turnDeg: 40, // turn degree per second
                 fuel: 1000, // how many m before out of fuel
                 exRad: 50, // explosion radius
-            }
+            },
+            {
+                name: "Standard flare", // just a name
+                isFlare: true, // it is a flare
+                maxSpeed: 40, // m/s
+                acceleration: 0, // m/s^2
+                v1: 0, // minimum speed, plane can start to turn after this
+                turnDeg: 0, // turn degree per second
+                fuel: 250, // how many m before out of fuel
+                exRad: 10, // explosion radius
+            },
         ]
         static list = []
         constructor(pos, vec, tar, team, model) {
@@ -378,6 +432,10 @@
                 }
             };
 
+            // add flares to the target list
+            team0 = [...team0, ...Missile.list.filter(t => t.isFlare && t.team == 0)]
+            team1 = [...team1, ...Missile.list.filter(t => t.isFlare && t.team == 1)]
+
             for (let l1 = 0; l1 < Missile.list.length; l1++) {
                 let missile = Missile.list[l1];
 
@@ -395,8 +453,9 @@
         }
     }
 
-    let a = new Plane(new Vector(1, 0), 0, 0, 0)
-    let b = new Plane(new Vector(1, 0), 1, 0, 0)
+    new Plane(new Vector(1, 0), 0, 0, 0)
+    new Plane(new Vector(1, 0), 0, 0, 1)
+    new Plane(new Vector(1, 0), 1, 0, 0)
     new Plane(new Vector(1, 0), 1, 0, 1)
 
     let sim = setInterval(() => {
