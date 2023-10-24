@@ -108,19 +108,19 @@
         static airports = [
             [
                 // team 0 airports
-                {pos: new Point(0, 1300), dir: 0},
-                {pos: new Point(50, 1400), dir: 0},
-                {pos: new Point(100, 1500), dir: 0},
-                {pos: new Point(50, 1600), dir: 0},
-                {pos: new Point(0, 1700), dir: 0},
+                {pos: new Point(2000, 2100), dir: 0},
+                {pos: new Point(2050, 2200), dir: 0},
+                {pos: new Point(2100, 2300), dir: 0},
+                {pos: new Point(2050, 2400), dir: 0},
+                {pos: new Point(2000, 2500), dir: 0},
             ],
             [
                 // team 1 airports
-                {pos: new Point(5000, 1300), dir: 180},
-                {pos: new Point(5000, 1400), dir: 180},
-                {pos: new Point(5000, 1500), dir: 180},
-                {pos: new Point(5000, 1600), dir: 180},
-                {pos: new Point(5000, 1700), dir: 180},
+                {pos: new Point(3000, 2500), dir: 180},
+                {pos: new Point(3000, 2600), dir: 180},
+                {pos: new Point(3000, 2700), dir: 180},
+                {pos: new Point(3000, 2800), dir: 180},
+                {pos: new Point(3000, 2900), dir: 180},
             ]
         ]
         static models = [
@@ -195,7 +195,7 @@
 
             // speed stuff
             let sd = dif.len - this.vec.len;
-            if (abs(d) > 90 && this.vec.len > this.v1 + 1) // behind and still above V1, reduce speed
+            if (45 < abs(d) && abs(d) < 150 && this.vec.len > this.v1 + 1) // on the side and still above V1, reduce speed
                 sd = -this.acceleration;
             sd = (sd < 0)? max(sd, -this.acceleration) : min(sd, this.acceleration);
             this.vec.len += sd;
@@ -464,8 +464,46 @@
         }
     }
 
-    new Plane(new Vector(1, 0), 0, 0, new Point(1000, 2500))
-    new Plane(new Vector(1, 180), 1, 0, new Point(4000, 2500))
+    new Plane(new Vector(50, 0), 0, 0, 0)
+    new Plane(new Vector(50, 0), 0, 0, 1)
+    new Plane(new Vector(50, 0), 0, 0, 2)
+    new Plane(new Vector(50, 0), 0, 0, 3)
+    new Plane(new Vector(50, 0), 0, 0, 4)
+    new Plane(new Vector(50, 0), 1, 0, 0)
+    new Plane(new Vector(50, 0), 1, 0, 1)
+    new Plane(new Vector(50, 0), 1, 0, 2)
+    new Plane(new Vector(50, 0), 1, 0, 3)
+    new Plane(new Vector(50, 0), 1, 0, 4)
+    new Plane(new Vector(0, 0), 0, 0, 0)
+    new Plane(new Vector(0, 0), 0, 0, 1)
+    new Plane(new Vector(0, 0), 0, 0, 2)
+    new Plane(new Vector(0, 0), 0, 0, 3)
+    new Plane(new Vector(0, 0), 0, 0, 4)
+    new Plane(new Vector(0, 0), 1, 0, 0)
+    new Plane(new Vector(0, 0), 1, 0, 1)
+    new Plane(new Vector(0, 0), 1, 0, 2)
+    new Plane(new Vector(0, 0), 1, 0, 3)
+    new Plane(new Vector(0, 0), 1, 0, 4)
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 0, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
+    new Plane(new Vector(700, random() * 360), 1, 0, new Point(2500, 2500))
 
     // shuffle
     Plane.list = Plane.list
