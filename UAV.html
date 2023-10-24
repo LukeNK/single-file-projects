@@ -191,16 +191,18 @@
 
             // different between current heading and minPlane
             let dif = Vector.fromPoints(this.pos, minPlane.pos)
+            let d = dif.dirDiff(this.vec); // direction difference
 
             // speed stuff
-            let d = dif.len - this.vec.len;
-            d = (d < 0)? max(d, -this.acceleration) : min(d, this.acceleration);
-            this.vec.len += d;
+            let sd = dif.len - this.vec.len;
+            if (abs(d) > 90 && this.vec.len > this.v1 + 1) // behind and still above V1, reduce speed
+                sd = -this.acceleration;
+            sd = (sd < 0)? max(sd, -this.acceleration) : min(sd, this.acceleration);
+            this.vec.len += sd;
             this.vec.len = min(this.vec.len, this.maxSpeed)
 
             // direction
             if (this.vec.len < this.v1) return; // only turn and shot when above v1
-            d = dif.dirDiff(this.vec)
             this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
 
             // calculate weapon system (Heil Prez)
@@ -462,16 +464,9 @@
         }
     }
 
-    new Plane(new Vector(0, 0), 0, 0, 0)
-    new Plane(new Vector(0, 0), 0, 0, 1)
-    new Plane(new Vector(0, 0), 0, 0, 2)
-    new Plane(new Vector(0, 0), 0, 0, 3)
-    new Plane(new Vector(0, 0), 0, 0, 4)
-    new Plane(new Vector(0, 0), 1, 0, 0)
-    new Plane(new Vector(0, 0), 1, 0, 1)
-    new Plane(new Vector(0, 0), 1, 0, 2)
-    new Plane(new Vector(0, 0), 1, 0, 3)
-    new Plane(new Vector(0, 0), 1, 0, 4)
+    new Plane(new Vector(1, 0), 0, 0, new Point(1000, 2500))
+    new Plane(new Vector(1, 180), 1, 0, new Point(4000, 2500))
+
     // shuffle
     Plane.list = Plane.list
         .map(value => ({ value, sort: Math.random() }))
