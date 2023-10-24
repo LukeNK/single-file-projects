@@ -107,13 +107,19 @@
         static airports = [
             [
                 // team 0 airports
-                {pos: new Point(0, 0), dir: 45},
-                {pos: new Point(0, 300), dir: 45}
+                {pos: new Point(0, 1300), dir: 0},
+                {pos: new Point(50, 1400), dir: 0},
+                {pos: new Point(100, 1500), dir: 0},
+                {pos: new Point(50, 1600), dir: 0},
+                {pos: new Point(0, 1700), dir: 0},
             ],
             [
                 // team 1 airports
-                {pos: new Point(1000, 0), dir: 90},
-                {pos: new Point(1300, 0), dir: 90}
+                {pos: new Point(3000, 1300), dir: 180},
+                {pos: new Point(3000, 1400), dir: 180},
+                {pos: new Point(3000, 1500), dir: 180},
+                {pos: new Point(3000, 1600), dir: 180},
+                {pos: new Point(3000, 1700), dir: 180},
             ]
         ]
         static models = [
@@ -263,7 +269,7 @@
                 v1: 0, // minimum speed, plane can start to turn after this
                 turnDeg: 0, // turn degree per second
                 fuel: 250, // how many m before out of fuel
-                exRad: 10, // explosion radius
+                exRad: 5, // explosion radius
             },
         ]
         static list = []
@@ -452,8 +458,24 @@
 
     new Plane(new Vector(1, 0), 0, 0, 0)
     new Plane(new Vector(1, 0), 0, 0, 1)
+    new Plane(new Vector(1, 0), 0, 0, 2)
+    new Plane(new Vector(1, 0), 0, 0, 3)
+    new Plane(new Vector(1, 0), 0, 0, 4)
+    new Plane(new Vector(1, random() * 360), 0, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 0, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 0, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 0, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 0, 0, new Point(1500, 1500))
     new Plane(new Vector(1, 0), 1, 0, 0)
     new Plane(new Vector(1, 0), 1, 0, 1)
+    new Plane(new Vector(1, 0), 1, 0, 2)
+    new Plane(new Vector(1, 0), 1, 0, 3)
+    new Plane(new Vector(1, 0), 1, 0, 4)
+    new Plane(new Vector(1, random() * 360), 1, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 1, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 1, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 1, 0, new Point(1500, 1500))
+    new Plane(new Vector(1, random() * 360), 1, 0, new Point(1500, 1500))
 
     let sim = setInterval(() => {
         if (
