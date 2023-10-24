@@ -122,11 +122,6 @@
                 v1: 55, // minimum speed, plane can start to turn after this
                 turnDeg: 7, // turn degree per second
                 fuel: 100000, // how many m before out of fuel
-                flares: 1,
-                flareAngle: 1,
-                flareTrigger: 3500, // lower range because the bullet turn
-                shell: 12,
-                fireRate: 20,
             }
         ]
         static list = []
@@ -135,8 +130,6 @@
             this.team = team;
             this.model = model;
             this.destroyed = false;
-
-            console.log(Plane.models[model])
 
             if (start === undefined)
                 start = Math.floor(random() * Plane.airports[team].length);
@@ -149,6 +142,10 @@
 
             for (const property in Plane.models[model])
                 this[property] = Plane.models[model][property];
+
+            // push trail history
+            this.trail = Array.from({length: 5})
+            this.trail.fill(this.pos.copy())
 
             Plane.list.push(this)
         }
@@ -195,6 +192,12 @@
         static models = [
 
         ]
+        constructor(pos, vec, tar) {
+
+        }
+        tickMove() {
+
+        }
     }
 
     const Delta = 0.1; // Length between frames
@@ -226,24 +229,19 @@
 
             if (type == 't') {
                 // trail
-                ctx.setLineDash([10, 10]);
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = '#FA824C'
-                return
-            }
-
-            ctx.setLineDash([]); // line
-            if (type == 'r') {
+            } else if (type == 'r') {
                 // rocket
                 ctx.lineWidth = 10;
                 ctx.strokeStyle = '#fbfef9'
             } else if (type === 0) {
                 // projected team 0
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.strokeStyle = '#0C6291'
             } else if (type === 1) {
                 // projected team 1
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.strokeStyle = '#A63446'
             } else if (type == 'e') {
                 // explosion
@@ -265,7 +263,7 @@
         },
         circle: (cen, rad, type) => {
             // draw a circle with center as a point
-            can.setStroke(type || 'e');
+            can.setStroke(type);
             ctx.beginPath();
             ctx.arc(cen.x, cen.y, rad, 0, 2 * PI);
             ctx.stroke();
@@ -289,12 +287,15 @@
                 let plane = Plane.list[l1];
 
                 if (plane.destroyed != true) {
-                    let p0 = plane.pos.copy()
                     if (plane.team == 0) plane.tickMove(team0, team1);
-                    else plane.tickMove(team1, team0)
+                    else plane.tickMove(team1, team0);
                     let p2 = plane.getNextPoint();
 
-                    can.line(plane.pos, p0, 't'); // trail
+                    plane.trail.pop();
+                    plane.trail.unshift(plane.pos.copy())
+                    for (let l1 = 0; l1 < plane.trail.length - 1; l1++)
+                        can.line(plane.trail[l1], plane.trail[l1+1], 't');
+                    can.circle(plane.pos, plane.v1, plane.team)
                     can.line(plane.pos, p2, plane.team)
                 }
             };
