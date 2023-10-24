@@ -1,0 +1,312 @@
+<head>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: black;
+            color: #fbfef9;
+        }
+
+        #stats {
+            position: fixed;
+            width: 100%; /* Full width (cover the whole page) */
+            height: 100%; /* Full height (cover the whole page) */
+            top: 1rem;
+            left: 1rem;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div id="stats">
+        <p>Objects: <span id="objects"></span>/(<span id="tObjects"></span>)</p>
+        <p>Team 0 uncontrolled: <span id="uTeam0"></span>/<span id="team0"></span></p>
+        <p>Team 1 uncontrolled: <span id="uTeam1"></span>/<span id="team1"></span></p>
+    </div>
+    <canvas id="canvas" height="1400" width="2400"></canvas>
+</body>
+<script>
+    // constants
+    const PI = Math.PI,
+        sqrt = Math.sqrt,
+        sin = Math.sin,
+        cos = Math.cos,
+        atan2 = Math.atan2,
+        abs = Math.abs,
+        min = Math.min,
+        max = Math.max,
+        random = Math.random,
+        floor = Math.floor;
+    const toRad = x => x * PI / 180,
+        toDeg = x => x * 180 / PI;
+
+    // utils
+    const randomItem = arr => arr[floor((random() * arr.length))];
+
+    // physics engine
+    class Point {
+        constructor(x, y) {
+            if (typeof x != "number" || typeof y != "number")
+                throw TypeError('Point constructor must be a number');
+            this.x = x;
+            this.y = y;
+        }
+        copy() {
+            // copy to return new point without reference
+            return new Point(this.x, this.y);
+        }
+    }
+
+    class Vector {
+        #dir = 0;
+        get dir() {
+            return this.#dir;
+        }
+        set dir(x) {
+            if (x < 0) x = 360 * 10 - abs(x) ; // dumb patch work
+            this.#dir = x % 360;
+        }
+        constructor(length, direction) {
+            if (typeof length != "number" || typeof direction != "number")
+                throw TypeError('Vector constructor must be a number');
+            this.len = length;
+            this.dir = direction;
+        }
+        toPoint() {
+            // convert to the next relative points
+            // cos theta = (x/l)
+            let dir = this.dir, len = this.len;
+            return new Point(
+                cos(toRad(dir)) * len,
+                sin(toRad(dir)) * len
+            )
+        }
+        static fromPoints(p1, p2) {
+            // generate vector from points
+            let x = p2.x - p1.x, y = p2.y - p1.y;
+            return new Vector(
+                sqrt(x*x + y*y),
+                toDeg(atan2(y, x))
+            );
+        }
+        copy() {
+            return new Vector(this.len, this.dir)
+        }
+        dirDiff(v2) {
+            // difference dir between two vectors
+            let d = this.dir - v2.dir; // difference between expected place
+            if (abs(d) > 180)
+                d = v2.dir - this.dir
+            return d;
+        }
+    }
+
+    class Plane {
+        static airports = [
+            [
+                // team 0 airports
+                {pos: new Point(0, 0), dir: 45}
+            ],
+            [
+                // team 1 airports
+                {pos: new Point(100, 100), dir: 45}
+
+            ]
+        ]
+        static models = [
+            {
+                name: "Uria 3 — Seeker: UAV", // just a name
+                maxSpeed: 175, // m/s
+                acceleration: 1, // m/s^2
+                v1: 55, // minimum speed, plane can start to turn after this
+                turnDeg: 7, // turn degree per second
+                fuel: 100000, // how many m before out of fuel
+                flares: 1,
+                flareAngle: 1,
+                flareTrigger: 3500, // lower range because the bullet turn
+                shell: 12,
+                fireRate: 20,
+            }
+        ]
+        static list = []
+        constructor(vector, team, model, start) {
+            this.vec = vector;
+            this.team = team;
+            this.model = model;
+            this.destroyed = false;
+
+            console.log(Plane.models[model])
+
+            if (start === undefined)
+                start = Math.floor(random() * Plane.airports[team].length);
+            if (typeof start == 'number') {
+                // starting from airport, fix runway direction
+                this.pos = Plane.airports[team][start].pos;
+                this.vec.dir = Plane.airports[team][start].dir
+            } else if (start instanceof Point)
+                this.pos = start;
+
+            for (const property in Plane.models[model])
+                this[property] = Plane.models[model][property];
+
+            Plane.list.push(this)
+        }
+        getNextPoint() {
+            // get the next point with absolute coord
+            let x = this.pos.x, y = this.pos.y,
+                rel = this.vec.toPoint();
+            return new Point(x + rel.x, y + rel.y)
+        }
+        tickMove(friendly, enemy) {
+            this.pos = this.getNextPoint(); // go to next point
+            this.fuel -= this.vec.len; // reduce fuel
+
+            // calculate next vector
+            // find closest plane
+            let minP = Infinity, minPlane;
+            for (const plane of enemy) {
+                let dis = Vector.fromPoints(this.pos, plane.pos);
+                if (dis.len < minP) {
+                    minP = dis.len;
+                    minPlane = plane;
+                }
+            }
+
+            // different between current heading and minPlane
+            let dif = Vector.fromPoints(this.pos, minPlane.pos)
+
+            // speed stuff
+            let d = dif.len - this.vec.len;
+            d = (d < 0)? max(d, -this.acceleration) : min(d, this.acceleration);
+            this.vec.len += d;
+            this.vec.len = min(this.vec.len, this.maxSpeed)
+
+            // direction
+            if (this.vec.len > this.v1) {
+                // only turn when above v1
+                d = dif.dirDiff(this.vec)
+                this.vec.dir += (d < 0)? max(d, -this.turnDeg) : min(d, this.turnDeg);
+            }
+        }
+    }
+
+    class Missile {
+        static models = [
+
+        ]
+    }
+
+    const Delta = 0.1; // Length between frames
+    // all properties that are time-based will be multiplied by Delta
+    const timeProp = [
+        'maxSpeed',
+        'acceleration',
+        'v1',
+        'turnDeg',
+        'fireRate'
+    ]
+    for (const plane of Plane.models)
+        for (const prop in plane)
+            if (timeProp.includes(prop))
+                plane[prop] *= Delta;
+</script>
+<script>
+    // display
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    // ctx.scale(0.1, 0.1)
+
+    let currentStrokeType = ''; // current stroke to optimize
+
+    const can = {
+        setStroke: type => {
+            // https://coolors.co/a63446-fbfef9-0c6291-fa824c-157f1f
+            if (type === currentStrokeType) return; // no need to set again
+
+            if (type == 't') {
+                // trail
+                ctx.setLineDash([10, 10]);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#FA824C'
+                return
+            }
+
+            ctx.setLineDash([]); // line
+            if (type == 'r') {
+                // rocket
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#fbfef9'
+            } else if (type === 0) {
+                // projected team 0
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#0C6291'
+            } else if (type === 1) {
+                // projected team 1
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#A63446'
+            } else if (type == 'e') {
+                // explosion
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#FA824C'
+            } else if (type == 's') {
+                // start
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#157F1F'
+            }
+
+        },
+        line: (p1, p2, type) => {
+            can.setStroke(type)
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+        },
+        circle: (cen, rad, type) => {
+            // draw a circle with center as a point
+            can.setStroke(type || 'e');
+            ctx.beginPath();
+            ctx.arc(cen.x, cen.y, rad, 0, 2 * PI);
+            ctx.stroke();
+        },
+        tick: () => {
+            ctx.rect(0, 0, 30000, 30000);
+            ctx.fill();
+
+            let team0 = Plane.list.filter(p => p.team === 0),
+                team1 = Plane.list.filter(p => p.team === 1);
+
+            // stat display
+            document.getElementById('objects').innerText = Plane.list.length;
+            // document.getElementById('tObjects').innerText = Plane.count[0] + ' + ' + Plane.count[1];
+            document.getElementById('team0').innerText = team0.length;
+            document.getElementById('uTeam0').innerText = team0.filter(r => r?.uncontrol).length;
+            document.getElementById('team1').innerText = team1.length;
+            document.getElementById('uTeam1').innerText = team1.filter(r => r?.uncontrol).length;
+
+            for (let l1 = 0; l1 < Plane.list.length; l1++) {
+                let plane = Plane.list[l1];
+
+                if (plane.destroyed != true) {
+                    let p0 = plane.pos.copy()
+                    if (plane.team == 0) plane.tickMove(team0, team1);
+                    else plane.tickMove(team1, team0)
+                    let p2 = plane.getNextPoint();
+
+                    can.line(plane.pos, p0, 't'); // trail
+                    can.line(plane.pos, p2, plane.team)
+                }
+            };
+        }
+    }
+
+    let a = new Plane(new Vector(1, 0), 0, 0, 0)
+    let b = new Plane(new Vector(1, 0), 1, 0, 0)
+
+
+    let sim = setInterval(() => {
+        can.tick();
+    }, 1000 * Delta);
+    can.tick()
+</script>
