@@ -108,6 +108,13 @@
     // the training step thanks to Jaerri
     class Config {
         static fields = {
+            turnMinWeightPercentage: {
+                desc: 'The weight multiply with the turn different when finding the closest enemy, in percentage',
+                min: 0,
+                max: 200,
+                devWeight: 5, // restrict deviation by weight
+            },
+
             vecLenReduceLower: {
                 desc: 'The lower bound of the angle that determines when to reduce speed',
                 min: 0,
@@ -197,14 +204,15 @@
         [
             new Config(),
             new Config(
-                Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6NC45MTE5OTcxMjI0NTc1NDA1LCJ2ZWNMZW5SZWR1Y2VVcHBlciI6MTUzLjE0NzE1MDI4Nzk3NzkyLCJtaXNzaWxlTGF1bmNoUmFuZ2UiOjgyMy42OTkxMjg1MTk5Mjk5LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjQ1LjYwODQ1Njc3MDY3MTQsImZsYXJlTGF1bmNoUmFuZ2UiOjgwMy4zNTE5NzQwMjQ3MjAzLCJmbGFyZVNlcGFyYXRpb25EaXN0YW5jZSI6NzEuNjgyMjgzNDE5NTkxOCwiZmxhcmVGb3J3YXJkQW5nbGUiOjI2LjU3NDk4Njk5MTI1MjE0LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjExMi4yOTMzODYzMjQ5MzZ9', 0)
+
             ),
         ],
         [
             new Config(),
             new Config(
-                Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6NC45MTE5OTcxMjI0NTc1NDA1LCJ2ZWNMZW5SZWR1Y2VVcHBlciI6MTUzLjE0NzE1MDI4Nzk3NzkyLCJtaXNzaWxlTGF1bmNoUmFuZ2UiOjgyMy42OTkxMjg1MTk5Mjk5LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjUwLjM1ODQ1Njc3MDY3MTQsImZsYXJlTGF1bmNoUmFuZ2UiOjc1NS44NTE5NzQwMjQ3MjAzLCJmbGFyZVNlcGFyYXRpb25EaXN0YW5jZSI6OTUuNDMyMjgzNDE5NTkxOCwiZmxhcmVGb3J3YXJkQW5nbGUiOjcuNTc0OTg2OTkxMjUyMTM5LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjkzLjI5MzM4NjMyNDkzNn0=', 0)
-            ),        ]
+
+            ),
+        ]
     ]
 
     class Plane {
@@ -309,8 +317,9 @@
             let minP = Infinity, minPlane;
             for (const plane of enemy) {
                 let dis = Vector.fromPoints(this.pos, plane.pos);
+                let dif = dis.dirDiff(this); // find the turn different
                 if (dis.len < minP) {
-                    minP = dis.len;
+                    minP = dis.len + abs(dif) * (config.fields.turnMinWeightPercentage / 100);
                     minPlane = plane;
                 }
             }
