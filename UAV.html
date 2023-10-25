@@ -104,6 +104,43 @@
         }
     }
 
+    class Config {
+        static fields = {
+            vecLenReduceLower: {
+                desc: 'The lower bound of the angle that determines when to reduce speed',
+                min: 0,
+                max: 90,
+                devWeight: 45, // restrict deviation by weight
+            },
+            vecLenReduceUpper: {
+                desc: 'The upper bound of the angle that determines when to reduce speed',
+                min: 90,
+                max: 180,
+                devWeight: 45, // restrict deviation by weight
+            },
+        }
+        constructor(oldCon, dev) {
+            // deviation compared to the old config
+            this.fields = {};
+            if (oldCon)
+                for (const key in oldCon) {
+                    const con = oldCon[key];
+                    let val = con + randomItem([-1, 1]) * dev * Config.fields[key].devWeight;
+                    if (Config.fields[key].min <= val && val <= Config.fields[key].max)
+                        this.fields[key] = val;
+                    else
+                        this.fields[key] = con;
+                }
+            else
+                for (const key in Config.fields) {
+                    const con = Config.fields[key];
+                    this.fields[key] = random() * (con.max - con.min) + con.min;
+                }
+        }
+    }
+
+    let team0Config = new Config(), team1Config = new Config();
+
     class Plane {
         static airports = [
             [
@@ -175,7 +212,7 @@
                 rel = this.vec.toPoint();
             return new Point(x + rel.x, y + rel.y)
         }
-        tickMove(friendly, enemy) {
+        tickMove(friendly, enemy, config) {
             this.pos = this.getNextPoint(); // go to next point
 
             // calculate next vector
@@ -195,8 +232,12 @@
 
             // speed stuff
             let sd = dif.len - this.vec.len;
-            if (45 < abs(d) && abs(d) < 150 && this.vec.len > this.v1 + 1) // on the side and still above V1, reduce speed
-                sd = -this.acceleration;
+            // on the side and still above V1, reduce speed
+            if (
+                config.fields.vecLenReduceLower < abs(d)
+                && abs(d) < config.fields.vecLenReduceUpper
+                && this.vec.len > this.v1 + 1
+            ) sd = -this.acceleration;
             sd = (sd < 0)? max(sd, -this.acceleration) : min(sd, this.acceleration);
             this.vec.len += sd;
             this.vec.len = min(this.vec.len, this.maxSpeed)
@@ -425,8 +466,8 @@
             for (let l1 = 0; l1 < Plane.list.length; l1++) {
                 let plane = Plane.list[l1];
 
-                if (plane.team == 0) plane.tickMove(team0, team1);
-                else plane.tickMove(team1, team0);
+                if (plane.team == 0) plane.tickMove(team0, team1, team0Config);
+                else plane.tickMove(team1, team0, team1Config);
                 let p2 = plane.getNextPoint();
 
                 plane.trail.pop();
@@ -464,29 +505,29 @@
         }
     }
 
-    new Plane(new Vector(0, 0), 0, 0, new Point(0, 2500)),
-    new Plane(new Vector(0, 180), 1, 0, new Point(5000, 2500))
+    // new Plane(new Vector(0, 0), 0, 0, new Point(0, 2500)),
+    // new Plane(new Vector(0, 180), 1, 0, new Point(5000, 2500))
 
-    new Plane(new Vector(50, 0), 0, 0, 0)
-    new Plane(new Vector(50, 0), 0, 0, 1)
-    new Plane(new Vector(50, 0), 0, 0, 2)
-    new Plane(new Vector(50, 0), 0, 0, 3)
-    new Plane(new Vector(50, 0), 0, 0, 4)
-    new Plane(new Vector(50, 0), 1, 0, 0)
-    new Plane(new Vector(50, 0), 1, 0, 1)
-    new Plane(new Vector(50, 0), 1, 0, 2)
-    new Plane(new Vector(50, 0), 1, 0, 3)
-    new Plane(new Vector(50, 0), 1, 0, 4)
-    new Plane(new Vector(5, 0), 0, 0, 0)
-    new Plane(new Vector(5, 0), 0, 0, 1)
-    new Plane(new Vector(5, 0), 0, 0, 2)
-    new Plane(new Vector(5, 0), 0, 0, 3)
-    new Plane(new Vector(5, 0), 0, 0, 4)
-    new Plane(new Vector(5, 0), 1, 0, 0)
-    new Plane(new Vector(5, 0), 1, 0, 1)
-    new Plane(new Vector(5, 0), 1, 0, 2)
-    new Plane(new Vector(5, 0), 1, 0, 3)
-    new Plane(new Vector(5, 0), 1, 0, 4)
+    // new Plane(new Vector(50, 0), 0, 0, 0)
+    // new Plane(new Vector(50, 0), 0, 0, 1)
+    // new Plane(new Vector(50, 0), 0, 0, 2)
+    // new Plane(new Vector(50, 0), 0, 0, 3)
+    // new Plane(new Vector(50, 0), 0, 0, 4)
+    // new Plane(new Vector(50, 0), 1, 0, 0)
+    // new Plane(new Vector(50, 0), 1, 0, 1)
+    // new Plane(new Vector(50, 0), 1, 0, 2)
+    // new Plane(new Vector(50, 0), 1, 0, 3)
+    // new Plane(new Vector(50, 0), 1, 0, 4)
+    // new Plane(new Vector(5, 0), 0, 0, 0)
+    // new Plane(new Vector(5, 0), 0, 0, 1)
+    // new Plane(new Vector(5, 0), 0, 0, 2)
+    // new Plane(new Vector(5, 0), 0, 0, 3)
+    // new Plane(new Vector(5, 0), 0, 0, 4)
+    // new Plane(new Vector(5, 0), 1, 0, 0)
+    // new Plane(new Vector(5, 0), 1, 0, 1)
+    // new Plane(new Vector(5, 0), 1, 0, 2)
+    // new Plane(new Vector(5, 0), 1, 0, 3)
+    // new Plane(new Vector(5, 0), 1, 0, 4)
     // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
     // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
     // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
@@ -514,12 +555,47 @@
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);
 
+    let startPlanes = 0; // number of planes at the start
     let sim = setInterval(() => {
-        if (
-            Plane.list.filter(r => r.team === 0).length <= 0
-            || Plane.list.filter(r => r.team === 1).length <= 0
-        ) return clearInterval(sim);
+        let t0Alive = Plane.list.filter(r => r.team === 0).length,
+            t1Alive = Plane.list.filter(r => r.team === 1).length;
+        if (t0Alive <= 0 || t1Alive <= 0) {
+            Plane.list = []; // clear plane list
+
+            // prepare new config from the alive team
+            let aliveConfig = (t0Alive > 0)? team0Config : team1Config,
+                aliveNum = (t0Alive > 0)? t0Alive : t1Alive
+            // keep one side to see if changes work
+            team0Config = new Config(aliveConfig.fields, 0);
+            // larger deviation because less alive = worst
+            team1Config = new Config(aliveConfig.fields, (startPlanes - aliveNum) / startPlanes);
+
+            new Plane(new Vector(0, 0), 0, 0, new Point(0, 2500)),
+            new Plane(new Vector(0, 180), 1, 0, new Point(5000, 2500))
+
+            new Plane(new Vector(50, 0), 0, 0, 0)
+            new Plane(new Vector(50, 0), 0, 0, 1)
+            new Plane(new Vector(50, 0), 0, 0, 2)
+            new Plane(new Vector(50, 0), 0, 0, 3)
+            new Plane(new Vector(50, 0), 0, 0, 4)
+            new Plane(new Vector(50, 0), 1, 0, 0)
+            new Plane(new Vector(50, 0), 1, 0, 1)
+            new Plane(new Vector(50, 0), 1, 0, 2)
+            new Plane(new Vector(50, 0), 1, 0, 3)
+            new Plane(new Vector(50, 0), 1, 0, 4)
+            new Plane(new Vector(5, 0), 0, 0, 0)
+            new Plane(new Vector(5, 0), 0, 0, 1)
+            new Plane(new Vector(5, 0), 0, 0, 2)
+            new Plane(new Vector(5, 0), 0, 0, 3)
+            new Plane(new Vector(5, 0), 0, 0, 4)
+            new Plane(new Vector(5, 0), 1, 0, 0)
+            new Plane(new Vector(5, 0), 1, 0, 1)
+            new Plane(new Vector(5, 0), 1, 0, 2)
+            new Plane(new Vector(5, 0), 1, 0, 3)
+            new Plane(new Vector(5, 0), 1, 0, 4)
+
+            startPlanes = Plane.list.length; // save start length
+        };
         can.tick();
     }, 1000 * Delta);
-    can.tick()
 </script>
