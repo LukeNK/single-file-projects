@@ -22,10 +22,9 @@
 <body>
     <div id="stats">
         <p>Generation <span id="gen">0</span></p>
-        <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span></p>
-        <p>Team 0: <span id="team0"></span></p>
-        <p>Team 1: <span id="team1"></span></p>
+        <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span>, current: <span id="team0"></span> - <span id="team1"></span></p>
         <p>Missiles: <span id="objects"></span></p>
+        <p id="msg"></p>
     </div>
     <canvas id="canvas" height="5000" width="5000"></canvas>
 </body>
@@ -343,10 +342,11 @@
                     // the group is out, refill
                     this.missileGroupCount = this.missileGroup;
                     this.missileCool = this.missileRate;
+                    if (random() < 0.05) radio(this.team, this.model, 0);
                 }
             }
 
-            // calculate flareSystem
+            // calculate flare system
             this.flareCool--;
             if (this.flareCool < 0) {
                 let minM = Infinity, minMissile;
@@ -383,6 +383,7 @@
                         // the group is out, refill
                         this.flareGroupCount = this.flareGroup;
                         this.flareCool = this.flareRate;
+                        if (random() < 0.05) radio(this.team, this.model, 1);
                     }
                 }
             }
@@ -577,7 +578,8 @@
                 if (plane.destroyed) {
                     can.circle(plane.pos, 100, 'e')
                     Plane.list.splice(l1, 1);
-                    l1--
+                    l1--;
+                    if (random() < 0.05) radio(plane.team, plane.model, 2);
                 }
             };
 
@@ -602,49 +604,43 @@
         }
     }
 
-    // new Plane(new Vector(0, 0), 0, 0, new Point(0, 2500)),
-    // new Plane(new Vector(0, 180), 1, 0, new Point(5000, 2500))
+    function radio(team, info, type) {
+        let out = (team != undefined)? `Team ${team}> ` : '';
 
-    // new Plane(new Vector(50, 0), 0, 0, 0)
-    // new Plane(new Vector(50, 0), 0, 0, 1)
-    // new Plane(new Vector(50, 0), 0, 0, 2)
-    // new Plane(new Vector(50, 0), 0, 0, 3)
-    // new Plane(new Vector(50, 0), 0, 0, 4)
-    // new Plane(new Vector(50, 0), 1, 0, 0)
-    // new Plane(new Vector(50, 0), 1, 0, 1)
-    // new Plane(new Vector(50, 0), 1, 0, 2)
-    // new Plane(new Vector(50, 0), 1, 0, 3)
-    // new Plane(new Vector(50, 0), 1, 0, 4)
-    // new Plane(new Vector(5, 0), 0, 0, 0)
-    // new Plane(new Vector(5, 0), 0, 0, 1)
-    // new Plane(new Vector(5, 0), 0, 0, 2)
-    // new Plane(new Vector(5, 0), 0, 0, 3)
-    // new Plane(new Vector(5, 0), 0, 0, 4)
-    // new Plane(new Vector(5, 0), 1, 0, 0)
-    // new Plane(new Vector(5, 0), 1, 0, 1)
-    // new Plane(new Vector(5, 0), 1, 0, 2)
-    // new Plane(new Vector(5, 0), 1, 0, 3)
-    // new Plane(new Vector(5, 0), 1, 0, 4)
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 0, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
-    // new Plane(new Vector(100, random() * 360), 1, 0, new Point(2500, 2500))
+        if (type == undefined)
+            out += info;
+        else if (type == 0) {
+            // missile fox 2
+            out += info + '> ' + randomItem([
+                    'Fox 2, fox 2!',
+                    'Away we go!',
+                    'Locked and away!'
+                ])
+        } else if (type == 1) {
+            // flare
+            out += info + '> ' + randomItem([
+                    'Evade!',
+                    'Enemy locked on us',
+                    'We are being tagged',
+                    'Flare now!',
+                    'MOVE!',
+                    'TURN!',
+                ])
+        } else if (type == 2) {
+            // last word
+            out += info + '> ' + randomItem([
+                    'We are down',
+                    'We are hit',
+                    'Who the heck fly like that?',
+                    'How the hell on earth? We are down...',
+                    'ARE YOU DUMB <WSO name>?',
+                    'Predictable',
+                ])
+        }
+
+        document.getElementById('msg').innerText = out;
+    }
+
 
     // shuffle
     Plane.list = Plane.list
@@ -683,11 +679,21 @@
                 )
             }
 
+            new Plane(new Vector(0, 0), 0, 1, 0)
+            new Plane(new Vector(0, 0), 0, 1, 1)
+            new Plane(new Vector(0, 0), 0, 1, 2)
+            new Plane(new Vector(0, 0), 0, 1, 3)
+            new Plane(new Vector(0, 0), 0, 1, 4)
             new Plane(new Vector(0, 0), 0, 1, 5)
             new Plane(new Vector(0, 0), 0, 1, 6)
             new Plane(new Vector(0, 0), 0, 1, 7)
             new Plane(new Vector(0, 0), 0, 1, 8)
             new Plane(new Vector(0, 0), 0, 1, 9)
+            new Plane(new Vector(0, 0), 1, 1, 0)
+            new Plane(new Vector(0, 0), 1, 1, 1)
+            new Plane(new Vector(0, 0), 1, 1, 2)
+            new Plane(new Vector(0, 0), 1, 1, 3)
+            new Plane(new Vector(0, 0), 1, 1, 4)
             new Plane(new Vector(0, 0), 1, 1, 5)
             new Plane(new Vector(0, 0), 1, 1, 6)
             new Plane(new Vector(0, 0), 1, 1, 7)
@@ -695,29 +701,29 @@
             new Plane(new Vector(0, 0), 1, 1, 9)
 
 
-            new Plane(new Vector(0, 0), 0, 0, 7),
-            new Plane(new Vector(0, 180), 1, 0, 7)
+            // new Plane(new Vector(0, 0), 0, 0, 7),
+            // new Plane(new Vector(0, 180), 1, 0, 7)
 
-            new Plane(new Vector(50, 0), 0, 0, 0)
-            new Plane(new Vector(50, 0), 0, 0, 1)
-            new Plane(new Vector(50, 0), 0, 0, 2)
-            new Plane(new Vector(50, 0), 0, 0, 3)
-            new Plane(new Vector(50, 0), 0, 0, 4)
-            new Plane(new Vector(50, 0), 1, 0, 0)
-            new Plane(new Vector(50, 0), 1, 0, 1)
-            new Plane(new Vector(50, 0), 1, 0, 2)
-            new Plane(new Vector(50, 0), 1, 0, 3)
-            new Plane(new Vector(50, 0), 1, 0, 4)
-            new Plane(new Vector(5, 0), 0, 0, 0)
-            new Plane(new Vector(5, 0), 0, 0, 1)
-            new Plane(new Vector(5, 0), 0, 0, 2)
-            new Plane(new Vector(5, 0), 0, 0, 3)
-            new Plane(new Vector(5, 0), 0, 0, 4)
-            new Plane(new Vector(5, 0), 1, 0, 0)
-            new Plane(new Vector(5, 0), 1, 0, 1)
-            new Plane(new Vector(5, 0), 1, 0, 2)
-            new Plane(new Vector(5, 0), 1, 0, 3)
-            new Plane(new Vector(5, 0), 1, 0, 4)
+            // new Plane(new Vector(50, 0), 0, 0, 0)
+            // new Plane(new Vector(50, 0), 0, 0, 1)
+            // new Plane(new Vector(50, 0), 0, 0, 2)
+            // new Plane(new Vector(50, 0), 0, 0, 3)
+            // new Plane(new Vector(50, 0), 0, 0, 4)
+            // new Plane(new Vector(50, 0), 1, 0, 0)
+            // new Plane(new Vector(50, 0), 1, 0, 1)
+            // new Plane(new Vector(50, 0), 1, 0, 2)
+            // new Plane(new Vector(50, 0), 1, 0, 3)
+            // new Plane(new Vector(50, 0), 1, 0, 4)
+            // new Plane(new Vector(5, 0), 0, 0, 0)
+            // new Plane(new Vector(5, 0), 0, 0, 1)
+            // new Plane(new Vector(5, 0), 0, 0, 2)
+            // new Plane(new Vector(5, 0), 0, 0, 3)
+            // new Plane(new Vector(5, 0), 0, 0, 4)
+            // new Plane(new Vector(5, 0), 1, 0, 0)
+            // new Plane(new Vector(5, 0), 1, 0, 1)
+            // new Plane(new Vector(5, 0), 1, 0, 2)
+            // new Plane(new Vector(5, 0), 1, 0, 3)
+            // new Plane(new Vector(5, 0), 1, 0, 4)
 
             startPlanes = Plane.list.length; // save start length
 
