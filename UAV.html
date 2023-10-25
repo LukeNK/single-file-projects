@@ -635,7 +635,7 @@
         .map(({ value }) => value);
 
     // import AI data
-    team1Config = new Config(Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6Ny43OTg4MzI2ODM4NDIzMjUsInZlY0xlblJlZHVjZVVwcGVyIjoxMzIuMzA2OTExODAxODY3MjQsIm1pc3NpbGVMYXVuY2hSYW5nZSI6MTcxLjkzNTMxNDI3NzkxNjU1LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjc4Ljk0Mjk3MDgyNjkwNDg4LCJmbGFyZUxhdW5jaFJhbmdlIjo3MDAuNDc0MDEzNjg5NDQzMywiZmxhcmVTZXBhcmF0aW9uRGlzdGFuY2UiOjc5LjQ0NDEzNDI1Nzk2NjA4LCJmbGFyZUZvcndhcmRBbmdsZSI6NC4xOTMzMzQ4MzA0NjM3NzI1LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjE3Mi4wNDA5MjM0MzgyNDkwNX0='), 0)
+    // team1Config = new Config(Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6Ny43OTg4MzI2ODM4NDIzMjUsInZlY0xlblJlZHVjZVVwcGVyIjoxMzIuMzA2OTExODAxODY3MjQsIm1pc3NpbGVMYXVuY2hSYW5nZSI6MTcxLjkzNTMxNDI3NzkxNjU1LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjc4Ljk0Mjk3MDgyNjkwNDg4LCJmbGFyZUxhdW5jaFJhbmdlIjo3MDAuNDc0MDEzNjg5NDQzMywiZmxhcmVTZXBhcmF0aW9uRGlzdGFuY2UiOjc5LjQ0NDEzNDI1Nzk2NjA4LCJmbGFyZUZvcndhcmRBbmdsZSI6NC4xOTMzMzQ4MzA0NjM3NzI1LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjE3Mi4wNDA5MjM0MzgyNDkwNX0='), 0)
 
     let startPlanes = 1, generation = 0; // number of planes at the start
     let sim = setInterval(() => {
@@ -659,6 +659,16 @@
             team0Config = new Config(aliveConfig.fields, 0);
             // larger deviation because less alive = worst
             team1Config = new Config(aliveConfig.fields, (startPlanes - aliveNum) / startPlanes);
+
+            // new Plane(new Vector(50, 0), 0, 1, 0)
+            // new Plane(new Vector(50, 0), 0, 1, 1)
+            // new Plane(new Vector(50, 0), 0, 1, 2)
+            // new Plane(new Vector(50, 0), 0, 1, 3)
+            // new Plane(new Vector(50, 0), 0, 1, 4)
+            // new Plane(new Vector(50, 0), 1, 1, 0)
+            // new Plane(new Vector(50, 0), 1, 1, 1)
+            // new Plane(new Vector(50, 0), 1, 1, 2)
+            // new Plane(new Vector(50, 0), 1, 1, 3)
 
             new Plane(new Vector(0, 0), 0, 0, new Point(0, 2500)),
             new Plane(new Vector(0, 180), 1, 0, new Point(5000, 2500))
