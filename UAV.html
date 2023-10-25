@@ -7,6 +7,16 @@
             color: #fbfef9;
         }
 
+        button {
+            font-family: inherit;
+            font-size: inherit;
+            cursor: pointer;
+            outline-width: 0;
+            border-width: 0;
+            background-color: transparent;
+            color: #fbfef9;
+        }
+
         #stats {
             position: fixed;
             width: 100%; /* Full width (cover the whole page) */
@@ -23,8 +33,9 @@
     <div id="stats">
         <p>Generation <span id="gen">0</span></p>
         <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span>, current: <span id="team0"></span> - <span id="team1"></span></p>
-        <p>Missiles: <span id="objects"></span></p>
+        <p>Missiles: <span id="objects"></span>, canvas: <button onclick="CanvasEnable = !CanvasEnable; this.innerHTML = CanvasEnable">True</button></p>
         <p id="msg"></p>
+
     </div>
     <canvas id="canvas" height="5000" width="5000"></canvas>
 </body>
@@ -190,7 +201,7 @@
             for (const l1 in this.fields)
                 val += this.fields[l1];
             val = val.toString(16).split('.');
-            return val[0][0] + val[0].slice(-2) + val[1].slice(-3)
+            return val[0][0] + val[0].slice(-2) + val[1].slice(0, 2) + val[1].at(-1);
         }
         static exportData(data) {
             return btoa(JSON.stringify(data))
@@ -505,6 +516,7 @@
                 missile[prop] *= Delta;
 </script>
 <script>
+    let CanvasEnable = true;
     // display
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -545,6 +557,7 @@
 
         },
         line: (p1, p2, type) => {
+            if (!CanvasEnable) return;
             can.setStroke(type)
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -552,6 +565,7 @@
             ctx.stroke();
         },
         circle: (cen, rad, type) => {
+            if (!CanvasEnable) return;
             // draw a circle with center as a point
             can.setStroke(type);
             ctx.beginPath();
@@ -728,29 +742,26 @@
             new Plane(new Vector(0, 0), 1, 1, 9)
 
 
-            // new Plane(new Vector(0, 0), 0, 0, 7),
-            // new Plane(new Vector(0, 180), 1, 0, 7)
-
-            // new Plane(new Vector(50, 0), 0, 0, 0)
-            // new Plane(new Vector(50, 0), 0, 0, 1)
-            // new Plane(new Vector(50, 0), 0, 0, 2)
-            // new Plane(new Vector(50, 0), 0, 0, 3)
-            // new Plane(new Vector(50, 0), 0, 0, 4)
-            // new Plane(new Vector(50, 0), 1, 0, 0)
-            // new Plane(new Vector(50, 0), 1, 0, 1)
-            // new Plane(new Vector(50, 0), 1, 0, 2)
-            // new Plane(new Vector(50, 0), 1, 0, 3)
-            // new Plane(new Vector(50, 0), 1, 0, 4)
-            // new Plane(new Vector(5, 0), 0, 0, 0)
-            // new Plane(new Vector(5, 0), 0, 0, 1)
-            // new Plane(new Vector(5, 0), 0, 0, 2)
-            // new Plane(new Vector(5, 0), 0, 0, 3)
-            // new Plane(new Vector(5, 0), 0, 0, 4)
-            // new Plane(new Vector(5, 0), 1, 0, 0)
-            // new Plane(new Vector(5, 0), 1, 0, 1)
-            // new Plane(new Vector(5, 0), 1, 0, 2)
-            // new Plane(new Vector(5, 0), 1, 0, 3)
-            // new Plane(new Vector(5, 0), 1, 0, 4)
+            new Plane(new Vector(0, 0), 0, 0, 0)
+            new Plane(new Vector(0, 0), 0, 0, 1)
+            new Plane(new Vector(0, 0), 0, 0, 2)
+            new Plane(new Vector(0, 0), 0, 0, 3)
+            new Plane(new Vector(0, 0), 0, 0, 4)
+            new Plane(new Vector(5, 0), 0, 0, 5)
+            new Plane(new Vector(5, 0), 0, 0, 6)
+            new Plane(new Vector(5, 0), 0, 0, 7)
+            new Plane(new Vector(5, 0), 0, 0, 8)
+            new Plane(new Vector(5, 0), 0, 0, 9)
+            new Plane(new Vector(0, 0), 1, 0, 0)
+            new Plane(new Vector(0, 0), 1, 0, 1)
+            new Plane(new Vector(0, 0), 1, 0, 2)
+            new Plane(new Vector(0, 0), 1, 0, 3)
+            new Plane(new Vector(0, 0), 1, 0, 4)
+            new Plane(new Vector(5, 0), 1, 0, 5)
+            new Plane(new Vector(5, 0), 1, 0, 6)
+            new Plane(new Vector(5, 0), 1, 0, 7)
+            new Plane(new Vector(5, 0), 1, 0, 8)
+            new Plane(new Vector(5, 0), 1, 0, 9)
 
             startPlanes = Plane.list.length; // save start length
 
@@ -769,5 +780,5 @@
             document.getElementById('gen').innerHTML += out
         };
         can.tick();
-    }, 1000 * Delta);
+    }, 250 * Delta);
 </script>
