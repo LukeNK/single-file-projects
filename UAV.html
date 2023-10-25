@@ -162,6 +162,12 @@
                     this.fields[key] = random() * (con.max - con.min) + con.min;
                 }
         }
+        static exportData(data) {
+            return btoa(JSON.stringify(data))
+        }
+        static importData(data) {
+            return JSON.parse(atob(data))
+        }
     }
 
     let team0Config = new Config(), team1Config = new Config();
@@ -599,7 +605,7 @@
             document.getElementById('team1r').innerHTML = t1Alive;
 
             Plane.list = []; // clear plane list
-            Missile.list - [];
+            Missile.list = [];
 
             // prepare new config from the alive team
             let aliveConfig = (t0Alive > 0)? team0Config : team1Config,
