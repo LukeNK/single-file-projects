@@ -105,6 +105,7 @@
         }
     }
 
+    // the training step thanks to Jaerri
     class Config {
         static fields = {
             vecLenReduceLower: {
@@ -196,7 +197,9 @@
         [],
         [
             new Config(),
-            new Config()
+            new Config(
+                Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6NC45MTE5OTcxMjI0NTc1NDA1LCJ2ZWNMZW5SZWR1Y2VVcHBlciI6MTUzLjE0NzE1MDI4Nzk3NzkyLCJtaXNzaWxlTGF1bmNoUmFuZ2UiOjgyMy42OTkxMjg1MTk5Mjk5LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjQ1LjYwODQ1Njc3MDY3MTQsImZsYXJlTGF1bmNoUmFuZ2UiOjgwMy4zNTE5NzQwMjQ3MjAzLCJmbGFyZVNlcGFyYXRpb25EaXN0YW5jZSI6NzEuNjgyMjgzNDE5NTkxOCwiZmxhcmVGb3J3YXJkQW5nbGUiOjI2LjU3NDk4Njk5MTI1MjE0LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjExMi4yOTMzODYzMjQ5MzZ9', 0)
+            )
         ]
     ]
 
@@ -633,7 +636,7 @@
             // last word
             out += info + '> ' + randomItem([
                     'We are down',
-                    'We are hit',
+                    'We got hit',
                     'Who the heck fly like that?',
                     'How the hell on earth? We are down...',
                     'ARE YOU DUMB <WSO name>?',
