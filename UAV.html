@@ -183,7 +183,7 @@
             for (const l1 in this.fields)
                 val += this.fields[l1];
             val = val.toString(16).split('.');
-            return val[0].slice(0, 3) + val[1].slice(-3)
+            return val[0][0] + val[0].slice(-2) + val[1].slice(-3)
         }
         static exportData(data) {
             return btoa(JSON.stringify(data))
@@ -194,13 +194,17 @@
     }
 
     let teamConfigs = [
-        [],
         [
             new Config(),
             new Config(
                 Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6NC45MTE5OTcxMjI0NTc1NDA1LCJ2ZWNMZW5SZWR1Y2VVcHBlciI6MTUzLjE0NzE1MDI4Nzk3NzkyLCJtaXNzaWxlTGF1bmNoUmFuZ2UiOjgyMy42OTkxMjg1MTk5Mjk5LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjQ1LjYwODQ1Njc3MDY3MTQsImZsYXJlTGF1bmNoUmFuZ2UiOjgwMy4zNTE5NzQwMjQ3MjAzLCJmbGFyZVNlcGFyYXRpb25EaXN0YW5jZSI6NzEuNjgyMjgzNDE5NTkxOCwiZmxhcmVGb3J3YXJkQW5nbGUiOjI2LjU3NDk4Njk5MTI1MjE0LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjExMi4yOTMzODYzMjQ5MzZ9', 0)
-            )
-        ]
+            ),
+        ],
+        [
+            new Config(),
+            new Config(
+                Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6NC45MTE5OTcxMjI0NTc1NDA1LCJ2ZWNMZW5SZWR1Y2VVcHBlciI6MTUzLjE0NzE1MDI4Nzk3NzkyLCJtaXNzaWxlTGF1bmNoUmFuZ2UiOjgyMy42OTkxMjg1MTk5Mjk5LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjUwLjM1ODQ1Njc3MDY3MTQsImZsYXJlTGF1bmNoUmFuZ2UiOjc1NS44NTE5NzQwMjQ3MjAzLCJmbGFyZVNlcGFyYXRpb25EaXN0YW5jZSI6OTUuNDMyMjgzNDE5NTkxOCwiZmxhcmVGb3J3YXJkQW5nbGUiOjcuNTc0OTg2OTkxMjUyMTM5LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjkzLjI5MzM4NjMyNDkzNn0=', 0)
+            ),        ]
     ]
 
     class Plane {
@@ -608,7 +612,7 @@
     }
 
     function radio(team, info, type) {
-        let out = (team != undefined)? `Team ${team}> ` : '';
+        let out = (team != undefined)? `Team ${team}.` : '';
 
         if (type == undefined)
             out += info;
@@ -667,22 +671,22 @@
             document.getElementById('team0r').innerHTML = t0Alive;
             document.getElementById('team1r').innerHTML = t1Alive;
 
-            generation++
-
             Plane.list = []; // clear plane list
             Missile.list = [];
 
-            // prepare new config from the alive team
-            let aliveTeam = (t0Alive > 0)? 0 : 1,
-                aliveNum = (t0Alive > 0)? t0Alive : t1Alive;
-            for (const l1 in teamConfigs[aliveTeam]) {
-                // keep one side to see if changes work
-                teamConfigs[0][l1] = new Config(teamConfigs[aliveTeam][l1].fields, 0)
-                // larger deviation because less alive = worst
-                teamConfigs[1][l1] = new Config(
-                    teamConfigs[aliveTeam][l1].fields,
-                    (startPlanes - aliveNum) / startPlanes
-                )
+            // prepare new config from the alive team, keep the first generation
+            if (generation) {
+                let aliveTeam = (t0Alive > 0)? 0 : 1,
+                    aliveNum = (t0Alive > 0)? t0Alive : t1Alive;
+                for (const l1 in teamConfigs[aliveTeam]) {
+                    // keep one side to see if changes work
+                    teamConfigs[0][l1] = new Config(teamConfigs[aliveTeam][l1].fields, 0)
+                    // larger deviation because less alive = worst
+                    teamConfigs[1][l1] = new Config(
+                        teamConfigs[aliveTeam][l1].fields,
+                        (startPlanes - aliveNum) / startPlanes
+                    )
+                }
             }
 
             new Plane(new Vector(0, 0), 0, 1, 0)
@@ -733,6 +737,7 @@
 
             startPlanes = Plane.list.length; // save start length
 
+
             let out = ' ('
             for (const config of teamConfigs[0])
                 out += config.hash() + '.'
@@ -743,6 +748,7 @@
             out = out.slice(0, -1); // remove last comma
             out += ')'
 
+            generation++
             document.getElementById('gen').innerHTML += out
         };
         can.tick();
