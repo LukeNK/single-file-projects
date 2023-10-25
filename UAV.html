@@ -21,6 +21,7 @@
 </head>
 <body>
     <div id="stats">
+        <p>Generation <span id="gen">0</span></p>
         <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span></p>
         <p>Team 0: <span id="team0"></span></p>
         <p>Team 1: <span id="team1"></span></p>
@@ -119,17 +120,32 @@
                 max: 180,
                 devWeight: 25, // restrict deviation by weight
             },
+
+            missileLaunchRange: {
+                desc: 'Distance from enemy to launch the missile',
+                min: 100,
+                max: 1000,
+                devWeight: 50, // restrict deviation by weight
+            },
             missileLaunchAngle: {
                 desc: 'Angle from enemy to launch the missile',
                 min: 0,
                 max: 90,
                 devWeight: 5, // restrict deviation by weight
             },
-            missileLaunchRange: {
-                desc: 'Distance from enemy to launch the missile',
-                min: 100,
+
+            flareLaunchRange: {
+                desc: 'Distance from missile to launch the flare',
+                min: 0,
                 max: 1000,
-                devWeight: 50, // restrict deviation by weight
+                devWeight: 50,
+            },
+
+            flareSeparationDistance: {
+                desc: 'Distance from the plane when launching the flare',
+                min: 50,
+                max: 200,
+                devWeight: 25,
             },
             flareForwardAngle: {
                 desc: 'Flare separation angle when it is foward',
@@ -161,6 +177,13 @@
                     const con = Config.fields[key];
                     this.fields[key] = random() * (con.max - con.min) + con.min;
                 }
+        }
+        hash() {
+            let val = 1;
+            for (const l1 in this.fields)
+                val += this.fields[l1];
+            val = val.toString(16).split('.');
+            return val[0].slice(0, 3) + val[1].slice(-3)
         }
         static exportData(data) {
             return btoa(JSON.stringify(data))
@@ -204,7 +227,20 @@
                 flare: 1,
                 flareGroup: 7,
                 flareRate: 7 / Delta,
-            }
+            },
+            {
+                name: "Uria 4 — Hunter: Fighter aircraft", // just a name
+                maxSpeed: 300, // m/s
+                acceleration: 3, // m/s^2
+                v1: 60, // minimum speed, plane can start to turn after this
+                turnDeg: 30, // turn degree per second
+                missile: 0, // missile model
+                missileGroup: 2, // how many missile in a group before cooling down
+                missileRate: 3 / Delta, // second per missile (frames per missile)
+                flare: 1,
+                flareGroup: 7,
+                flareRate: 7 / Delta,
+            },
         ]
         static list = []
         constructor(vector, team, model, start) {
@@ -311,10 +347,13 @@
                     }
                 }
 
-                if (this.flareCool < 0 && minM < 1000) {
+                if (
+                    this.flareCool < 0
+                    && minM < config.fields.flareLaunchRange
+                ) {
                     // separation vector
                     let vec = this.vec.copy();
-                    vec.len += 50
+                    vec.len += config.fields.flareSeparationDistance
                     vec.dir +=
                         randomItem([-1, 1])
                         * randomItem([
@@ -353,7 +392,7 @@
                 v1: 0, // minimum speed, plane can start to turn after this
                 turnDeg: 0, // turn degree per second
                 fuel: 250, // how many m before out of fuel
-                exRad: 5, // explosion radius
+                exRad: 1, // explosion radius
             },
         ]
         static list = []
@@ -595,21 +634,27 @@
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);
 
-    let startPlanes = 0; // number of planes at the start
+    // import AI data
+    team1Config = new Config(Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6Ny43OTg4MzI2ODM4NDIzMjUsInZlY0xlblJlZHVjZVVwcGVyIjoxMzIuMzA2OTExODAxODY3MjQsIm1pc3NpbGVMYXVuY2hSYW5nZSI6MTcxLjkzNTMxNDI3NzkxNjU1LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjc4Ljk0Mjk3MDgyNjkwNDg4LCJmbGFyZUxhdW5jaFJhbmdlIjo3MDAuNDc0MDEzNjg5NDQzMywiZmxhcmVTZXBhcmF0aW9uRGlzdGFuY2UiOjc5LjQ0NDEzNDI1Nzk2NjA4LCJmbGFyZUZvcndhcmRBbmdsZSI6NC4xOTMzMzQ4MzA0NjM3NzI1LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjE3Mi4wNDA5MjM0MzgyNDkwNX0='), 0)
+
+    let startPlanes = 1, generation = 0; // number of planes at the start
     let sim = setInterval(() => {
         let t0Alive = Plane.list.filter(r => r.team === 0).length,
             t1Alive = Plane.list.filter(r => r.team === 1).length;
         if (t0Alive <= 0 || t1Alive <= 0) {
             // stat display
+            document.getElementById('gen').innerHTML = generation;
             document.getElementById('team0r').innerHTML = t0Alive;
             document.getElementById('team1r').innerHTML = t1Alive;
+
+            generation++
 
             Plane.list = []; // clear plane list
             Missile.list = [];
 
             // prepare new config from the alive team
             let aliveConfig = (t0Alive > 0)? team0Config : team1Config,
-                aliveNum = (t0Alive > 0)? t0Alive : t1Alive
+                aliveNum = (t0Alive > 0)? t0Alive : t1Alive;
             // keep one side to see if changes work
             team0Config = new Config(aliveConfig.fields, 0);
             // larger deviation because less alive = worst
@@ -640,6 +685,13 @@
             new Plane(new Vector(5, 0), 1, 0, 4)
 
             startPlanes = Plane.list.length; // save start length
+
+            document.getElementById('gen').innerHTML +=
+                ' ('
+                + team0Config.hash()
+                + ' vs '
+                + team1Config.hash()
+                + ')';
         };
         can.tick();
     }, 1000 * Delta);
