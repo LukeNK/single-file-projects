@@ -21,6 +21,7 @@
 </head>
 <body>
     <div id="stats">
+        <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span></p>
         <p>Team 0: <span id="team0"></span></p>
         <p>Team 1: <span id="team1"></span></p>
         <p>Missiles: <span id="objects"></span></p>
@@ -110,13 +111,37 @@
                 desc: 'The lower bound of the angle that determines when to reduce speed',
                 min: 0,
                 max: 90,
-                devWeight: 45, // restrict deviation by weight
+                devWeight: 25, // restrict deviation by weight
             },
             vecLenReduceUpper: {
                 desc: 'The upper bound of the angle that determines when to reduce speed',
                 min: 90,
                 max: 180,
-                devWeight: 45, // restrict deviation by weight
+                devWeight: 25, // restrict deviation by weight
+            },
+            missileLaunchAngle: {
+                desc: 'Angle from enemy to launch the missile',
+                min: 0,
+                max: 90,
+                devWeight: 5, // restrict deviation by weight
+            },
+            missileLaunchRange: {
+                desc: 'Distance from enemy to launch the missile',
+                min: 100,
+                max: 1000,
+                devWeight: 50, // restrict deviation by weight
+            },
+            flareForwardAngle: {
+                desc: 'Flare separation angle when it is foward',
+                min: 0,
+                max: 90,
+                devWeight: 20,
+            },
+            flareBackwardAngle: {
+                desc: 'Flare separation angle when it is backward',
+                min: 90,
+                max: 180,
+                devWeight: 20,
             },
         }
         constructor(oldCon, dev) {
@@ -125,7 +150,7 @@
             if (oldCon)
                 for (const key in oldCon) {
                     const con = oldCon[key];
-                    let val = con + randomItem([-1, 1]) * dev * Config.fields[key].devWeight;
+                    let val = con + randomItem([-1, 0, 1]) * dev * Config.fields[key].devWeight;
                     if (Config.fields[key].min <= val && val <= Config.fields[key].max)
                         this.fields[key] = val;
                     else
@@ -146,9 +171,9 @@
             [
                 // team 0 airports
                 {pos: new Point(2000, 2100), dir: 0},
-                {pos: new Point(2050, 2200), dir: 0},
-                {pos: new Point(2100, 2300), dir: 0},
-                {pos: new Point(2050, 2400), dir: 0},
+                {pos: new Point(2000, 2200), dir: 0},
+                {pos: new Point(2000, 2300), dir: 0},
+                {pos: new Point(2000, 2400), dir: 0},
                 {pos: new Point(2000, 2500), dir: 0},
             ],
             [
@@ -248,7 +273,11 @@
 
             // calculate weapon system (Heil Prez)
             this.missileCool--;
-            if (this.missileCool < 0 && abs(d) < 30) {
+            if (
+                this.missileCool < 0
+                && dif.len < config.fields.missileLaunchRange
+                && abs(d) < config.fields.missileLaunchAngle
+            ) {
                 new Missile(this.pos.copy(), this.vec.copy(), minPlane.pos.copy(), this.team, this.missile);
                 // refil firerate
                 this.missileGroupCount--;
@@ -280,7 +309,12 @@
                     // separation vector
                     let vec = this.vec.copy();
                     vec.len += 50
-                    vec.dir += randomItem([-1, 1]) * randomItem([45, 125]); // multiple flare angle
+                    vec.dir +=
+                        randomItem([-1, 1])
+                        * randomItem([
+                            config.fields.flareForwardAngle,
+                            config.fields.flareBackwardAngle,
+                        ]); // multiple flare angle
                     new Missile(this.pos.copy(), vec, minPlane.pos.copy(), this.team, this.flare);
                     // refil firerate
                     this.flareGroupCount--;
@@ -560,6 +594,10 @@
         let t0Alive = Plane.list.filter(r => r.team === 0).length,
             t1Alive = Plane.list.filter(r => r.team === 1).length;
         if (t0Alive <= 0 || t1Alive <= 0) {
+            // stat display
+            document.getElementById('team0r').innerHTML = t0Alive;
+            document.getElementById('team1r').innerHTML = t1Alive;
+
             Plane.list = []; // clear plane list
 
             // prepare new config from the alive team
