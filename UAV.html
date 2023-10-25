@@ -31,7 +31,7 @@
 </head>
 <body>
     <div id="stats">
-        <p>Generation <span id="gen">0</span></p>
+        <p>Generation <span id="gen">0</span> (<span id="fightTime">0</span> ticks)</p>
         <p>Last match: <span id="team0r">0</span> - <span id="team1r">0</span>, current: <span id="team0"></span> - <span id="team1"></span></p>
         <p>Missiles: <span id="objects"></span>, canvas: <button onclick="CanvasEnable = !CanvasEnable; this.innerHTML = CanvasEnable">True</button></p>
         <p id="msg"></p>
@@ -573,8 +573,10 @@
             ctx.stroke();
         },
         tick: () => {
-            ctx.rect(0, 0, 30000, 30000);
-            ctx.fill();
+            if (CanvasEnable) {
+                ctx.rect(0, 0, 30000, 30000);
+                ctx.fill();
+            }
 
             // prevent run order bias
             let i = floor(random() * Plane.list.length),
@@ -631,6 +633,8 @@
                     l1--
                 }
             }
+
+            fightTime++;
         }
     }
 
@@ -692,7 +696,7 @@
     // import AI data
     // team1Config = new Config(Config.importData('eyJ2ZWNMZW5SZWR1Y2VMb3dlciI6Ny43OTg4MzI2ODM4NDIzMjUsInZlY0xlblJlZHVjZVVwcGVyIjoxMzIuMzA2OTExODAxODY3MjQsIm1pc3NpbGVMYXVuY2hSYW5nZSI6MTcxLjkzNTMxNDI3NzkxNjU1LCJtaXNzaWxlTGF1bmNoQW5nbGUiOjc4Ljk0Mjk3MDgyNjkwNDg4LCJmbGFyZUxhdW5jaFJhbmdlIjo3MDAuNDc0MDEzNjg5NDQzMywiZmxhcmVTZXBhcmF0aW9uRGlzdGFuY2UiOjc5LjQ0NDEzNDI1Nzk2NjA4LCJmbGFyZUZvcndhcmRBbmdsZSI6NC4xOTMzMzQ4MzA0NjM3NzI1LCJmbGFyZUJhY2t3YXJkQW5nbGUiOjE3Mi4wNDA5MjM0MzgyNDkwNX0='), 0)
 
-    let startPlanes = 1, generation = 0; // number of planes at the start
+    let startPlanes = 1, generation = 0, fightTime = 0; // number of planes at the start
     let sim = setInterval(() => {
         let t0Alive = Plane.list.filter(r => r.team === 0).length,
             t1Alive = Plane.list.filter(r => r.team === 1).length;
@@ -778,7 +782,12 @@
 
             generation++
             document.getElementById('gen').innerHTML += out
+            fightTime = 0;
         };
         can.tick();
     }, 250 * Delta);
+
+    setInterval(() => {
+        document.getElementById('fightTime').innerHTML = fightTime;
+    }, 1000)
 </script>
