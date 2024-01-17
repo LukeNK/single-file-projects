@@ -3,8 +3,13 @@
         body {
             padding: 0;
             margin: 0;
+            font-family: 'Courier New', Courier, monospace;
             background-color: black;
             color: white;
+        }
+
+        div {
+            position: fixed;
         }
 
         circle {
@@ -12,25 +17,24 @@
             fill: white;
             opacity: 0.5;
         }
-
-        .splitTick {
-            stroke: red;
-            stroke-width: 10;
-            opacity: 1;
-        }
     </style>
 </head>
 <body>
-    <svg id="svg" width="900" height="500"></svg>
     <div>
         <p>Total movement: <span id="totalMovement"></span></p>
-        <button onclick="Bubble.tick()">Tick</button>
-        <button onclick="splitTick()">Split tick <span id="splitTick">0</span></button>
-        <button onclick="clearInterval(interval)">Clear interval</button>
+        <p>Click to create bubble, click on the bubble (with delete mode) to delete bubble.</p>
+        <button onclick="clearInterval(interval)">Stop</button>
+        <label>
+            Bubble radius:
+            <input id="newRad" type="range" min="10" max="100">
+        </label>
+        <label>
+            Mode (check for create, uncheck for remove)
+            <input id="mode" type="checkbox" checked>
+        </label>
+        <button onclick="this.parentElement.style.display = 'none'">Hide</button>
     </div>
-    <div>
-        <input id="newRad" type="range" min="10" max="100">
-    </div>
+    <svg id="svg" width="900" height="100"></svg>
     <!--
         Each bubble as a "prefer" distance between other atom.
         If another bubble is inside the radius, it will push the other bubble out to the radius,
@@ -46,7 +50,13 @@ const svg = document.getElementById('svg'),
     sin = Math.sin,
     cos = Math.cos,
     atan2 = Math.atan2,
-    sqrt = Math.sqrt;
+    sqrt = Math.sqrt,
+    min = Math.min;
+
+let mousePos = {x: 200, y: 200};
+
+svg.setAttribute('width', document.documentElement.clientWidth);
+svg.setAttribute('height', document.documentElement.clientHeight);
 
 class Vector {
     constructor(length, heading) {
@@ -87,9 +97,18 @@ class Bubble {
         let circle = document.createElementNS(namespace, 'circle');
         this.elm = circle;
         circle.setAttribute('r', this.rad);
+        circle.addEventListener('click', () => {
+            if (document.getElementById('mode').checked) return; // create mode
+            for (const l1 in Bubble.list)
+                if (Bubble.list[l1] == this) {
+                    Bubble.list[l1].elm.remove()
+                    Bubble.list.splice(l1, 1);
+                    break
+                }
+        })
         this.updateDisplay();
-        svg.append(circle);
 
+        svg.append(circle);
         Bubble.list.push(this);
         return this;
     }
@@ -100,11 +119,19 @@ class Bubble {
     }
     tick() {
         let totalMovement = 0;
+
+        // move to the center
+        let vec = Vector.fromPoints(this.pos, mousePos);
+        vec.len = vec.len / 10; // limit according to distance
+        this.pos = vec.getPoint(this.pos);
+        this.updateDisplay();
+
+        // check interaction with other bubbles
         for (const bubble of Bubble.list) {
             if (bubble == this) continue; // skip itself
             let vec = Vector.fromPoints(this.pos, bubble.pos);
             if (vec.len > this.rad) continue; // out-of-range
-            vec.len = abs(this.rad - vec.len); // move out of the radius
+            vec.len = min(5, abs(this.rad - vec.len)); // move out of the radius
             totalMovement += vec.len; // add to movement calculation
             bubble.pos = vec.getPoint(bubble.pos);
             bubble.updateDisplay();
@@ -113,24 +140,19 @@ class Bubble {
     }
 }
 
-// tick bubble individualy
-let cur = 0;
-function splitTick() {
-    Bubble.list[cur].elm.classList.remove('splitTick')
-    Bubble.list[cur].tick();
-    cur++;
-    if (cur == Bubble.list.length) cur = 0;
-    Bubble.list[cur].elm.classList.add('splitTick')
-    document.getElementById('splitTick').innerText = cur;
-}
-
 // Add bubble
 svg.addEventListener('click', ev => {
+    if (!document.getElementById('mode').checked) return; // delete mode
     new Bubble(
         ev.clientX, ev.clientY,
         ~~document.getElementById('newRad').value
-    )
+    );
+});
+
+svg.addEventListener('mousemove', ev => {
+    mousePos.x = ev.clientX;
+    mousePos.y = ev.clientY;
 })
 
-let interval = setInterval(Bubble.tick, 250);
+let interval = setInterval(Bubble.tick, 50);
 </script>
