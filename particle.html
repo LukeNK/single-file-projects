@@ -24,14 +24,17 @@
     <svg id="svg" width="900" height="500"></svg>
     <div>
         <p>Total movement: <span id="totalMovement"></span></p>
-        <button onclick="Particle.tick()">Tick</button>
+        <button onclick="Bubble.tick()">Tick</button>
         <button onclick="splitTick()">Split tick <span id="splitTick">0</span></button>
         <button onclick="clearInterval(interval)">Clear interval</button>
     </div>
+    <div>
+        <input id="newRad" type="range" min="10" max="100">
+    </div>
     <!--
-        Each particle as a "prefer" distance between other atom.
-        If another particle is inside the radius, it will push the other particle out to the radius,
-        (but the other particle retain momentum, maybe?).
+        Each bubble as a "prefer" distance between other atom.
+        If another bubble is inside the radius, it will push the other bubble out to the radius,
+        (but the other bubble retain momentum, maybe?).
         This breaks the Law of Conservation, ruins the perfect elastic model, but I just want to see the world burn.
     -->
 </body>
@@ -65,12 +68,12 @@ class Vector {
     }
 }
 
-class Particle {
+class Bubble {
     static list = [];
     static tick() {
         let totalMovement = 0;
-        for (const particle of Particle.list)
-            totalMovement += particle.tick();
+        for (const bubble of Bubble.list)
+            totalMovement += bubble.tick();
 
         document.getElementById('totalMovement').innerText = ~~totalMovement;
 
@@ -87,7 +90,7 @@ class Particle {
         this.updateDisplay();
         svg.append(circle);
 
-        Particle.list.push(this);
+        Bubble.list.push(this);
         return this;
     }
     updateDisplay() {
@@ -97,34 +100,37 @@ class Particle {
     }
     tick() {
         let totalMovement = 0;
-        for (const particle of Particle.list) {
-            if (particle == this) continue; // skip itself
-            let vec = Vector.fromPoints(this.pos, particle.pos);
+        for (const bubble of Bubble.list) {
+            if (bubble == this) continue; // skip itself
+            let vec = Vector.fromPoints(this.pos, bubble.pos);
             if (vec.len > this.rad) continue; // out-of-range
             vec.len = abs(this.rad - vec.len); // move out of the radius
             totalMovement += vec.len; // add to movement calculation
-            particle.pos = vec.getPoint(particle.pos);
-            particle.updateDisplay();
+            bubble.pos = vec.getPoint(bubble.pos);
+            bubble.updateDisplay();
         }
         return totalMovement;
     }
 }
 
-// tick particle individualy
+// tick bubble individualy
 let cur = 0;
 function splitTick() {
-    Particle.list[cur].elm.classList.remove('splitTick')
-    Particle.list[cur].tick();
+    Bubble.list[cur].elm.classList.remove('splitTick')
+    Bubble.list[cur].tick();
     cur++;
-    if (cur == Particle.list.length) cur = 0;
-    Particle.list[cur].elm.classList.add('splitTick')
+    if (cur == Bubble.list.length) cur = 0;
+    Bubble.list[cur].elm.classList.add('splitTick')
     document.getElementById('splitTick').innerText = cur;
 }
 
-// Add particle
+// Add bubble
 svg.addEventListener('click', ev => {
-    new Particle(ev.clientX, ev.clientY, 50)
+    new Bubble(
+        ev.clientX, ev.clientY,
+        ~~document.getElementById('newRad').value
+    )
 })
 
-let interval = setInterval(Particle.tick, 250);
+let interval = setInterval(Bubble.tick, 250);
 </script>
