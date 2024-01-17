@@ -1,0 +1,130 @@
+<head>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: black;
+            color: white;
+        }
+
+        circle {
+            stroke: none;
+            fill: white;
+            opacity: 0.5;
+        }
+
+        .splitTick {
+            stroke: red;
+            stroke-width: 10;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <svg id="svg" width="900" height="500"></svg>
+    <div>
+        <p>Total movement: <span id="totalMovement"></span></p>
+        <button onclick="Particle.tick()">Tick</button>
+        <button onclick="splitTick()">Split tick <span id="splitTick">0</span></button>
+        <button onclick="clearInterval(interval)">Clear interval</button>
+    </div>
+    <!--
+        Each particle as a "prefer" distance between other atom.
+        If another particle is inside the radius, it will push the other particle out to the radius,
+        (but the other particle retain momentum, maybe?).
+        This breaks the Law of Conservation, ruins the perfect elastic model, but I just want to see the world burn.
+    -->
+</body>
+<script>
+const svg = document.getElementById('svg'),
+    namespace = 'http://www.w3.org/2000/svg',
+    abs = Math.abs,
+    random = Math.random,
+    sin = Math.sin,
+    cos = Math.cos,
+    atan2 = Math.atan2,
+    sqrt = Math.sqrt;
+
+class Vector {
+    constructor(length, heading) {
+        if (typeof length != "number" || typeof heading != "number")
+            throw TypeError('Input for Vector constructor must be number')
+        this.len = length; this.hdg = heading;
+    }
+    // get the head of the vector from the tail location
+    getPoint(tail) {
+        return {
+            x: tail.x + cos(this.hdg) * this.len,
+            y: tail.y + sin(this.hdg) * this.len
+        }
+    }
+    static fromPoints(p1, p2) {
+        let x = p2.x - p1.x,
+            y = p2.y - p1.y;
+        return new Vector(sqrt(y*y + x*x), atan2(y, x))
+    }
+}
+
+class Particle {
+    static list = [];
+    static tick() {
+        let totalMovement = 0;
+        for (const particle of Particle.list)
+            totalMovement += particle.tick();
+
+        document.getElementById('totalMovement').innerText = ~~totalMovement;
+
+        return totalMovement;
+    }
+
+    constructor(x, y, radius) {
+        this.pos = {x: x, y: y}; this.rad = radius;
+
+        // display
+        let circle = document.createElementNS(namespace, 'circle');
+        this.elm = circle;
+        circle.setAttribute('r', this.rad);
+        this.updateDisplay();
+        svg.append(circle);
+
+        Particle.list.push(this);
+        return this;
+    }
+    updateDisplay() {
+        // update display position
+        this.elm.setAttribute('cx', this.pos.x);
+        this.elm.setAttribute('cy', this.pos.y);
+    }
+    tick() {
+        let totalMovement = 0;
+        for (const particle of Particle.list) {
+            if (particle == this) continue; // skip itself
+            let vec = Vector.fromPoints(this.pos, particle.pos);
+            if (vec.len > this.rad) continue; // out-of-range
+            vec.len = abs(this.rad - vec.len); // move out of the radius
+            totalMovement += vec.len; // add to movement calculation
+            particle.pos = vec.getPoint(particle.pos);
+            particle.updateDisplay();
+        }
+        return totalMovement;
+    }
+}
+
+// tick particle individualy
+let cur = 0;
+function splitTick() {
+    Particle.list[cur].elm.classList.remove('splitTick')
+    Particle.list[cur].tick();
+    cur++;
+    if (cur == Particle.list.length) cur = 0;
+    Particle.list[cur].elm.classList.add('splitTick')
+    document.getElementById('splitTick').innerText = cur;
+}
+
+// Add particle
+svg.addEventListener('click', ev => {
+    new Particle(ev.clientX, ev.clientY, 50)
+})
+
+let interval = setInterval(Particle.tick, 250);
+</script>
