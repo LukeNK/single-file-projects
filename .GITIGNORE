@@ -1,3 +1,4 @@
-./node-module
+/node_modules/
 
+/pdf-flat/
 output.txt
